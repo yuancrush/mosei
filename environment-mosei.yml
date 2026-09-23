@@ -1,0 +1,45 @@
+name: mosei
+channels:
+  - defaults
+dependencies:
+  - python=3.10
+  - pip
+  - pip:
+      - --extra-index-url https://download.pytorch.org/whl/cu124
+      - torch==2.5.0+cu124
+      - torchvision==0.20.0+cu124
+      - torchaudio==2.5.0+cu124
+      - numpy==1.26.4
+      - pandas==2.2.3
+      - scipy==1.14.1
+      - scikit-learn==1.5.2
+      - matplotlib==3.9.2
+      - seaborn==0.13.2
+      - plotly==5.24.1
+      - openpyxl==3.1.5
+      - opencv-contrib-python==4.10.0.84
+      - mediapipe==0.10.21
+      - protobuf==4.25.9
+      - attrs==25.4.0
+      - flatbuffers==25.12.19
+      - sounddevice==0.5.6
+      - jax==0.4.30
+      - jaxlib==0.4.30
+      - ml-dtypes==0.5.4
+      - opt-einsum==3.4.0
+      - transformers==4.46.3
+      - accelerate==1.1.1
+      - sentencepiece==0.2.0
+      - safetensors==0.4.5
+      - librosa==0.10.2.post1
+      - soundfile==0.12.1
+      - opensmile==2.5.1
+      - imageio-ffmpeg==0.5.1
+      - captum==0.7.0
+      - torchmetrics==1.5.2
+      - einops==0.8.0
+      - tensorboard==2.18.0
+      - ipykernel==6.29.5
+      - tqdm==4.67.1
+      - rich==13.9.4
+      - pyyaml==6.0.2

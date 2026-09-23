@@ -1,0 +1,41 @@
+{
+  "label_row_count": 100,
+  "video_file_count": 100,
+  "unique_sample_id_count": 100,
+  "label_video_exact_match_count": 100,
+  "reference_match_count": 18,
+  "reference_text_exact_match_count": 18,
+  "reference_label_close_count": 18,
+  "annotation_sign_consistent_count": 100,
+  "has_video_stream_count": 100,
+  "has_audio_stream_count": 100,
+  "duration_s": {
+    "min": 2.6359666666666666,
+    "mean": 11.154742555555556,
+    "median": 10.35,
+    "max": 34.46666666666667,
+    "total": 1115.4742555555556
+  },
+  "annotation_distribution": {
+    "Positive": 57,
+    "Neutral": 25,
+    "Negative": 18
+  },
+  "resolution_distribution": {
+    "1280x720": 56,
+    "320x240": 5,
+    "486x360": 2,
+    "480x270": 10,
+    "480x360": 3,
+    "640x360": 14,
+    "360x360": 2,
+    "470x360": 8
+  },
+  "all_checks_passed": true,
+  "data_dir": "D:\\Desktop\\资料\\02研究生\\数学建模\\第二十三届中国研究生数学建模竞赛 - 中文题目\\中文题目\\E题\\E题数据\\E题数据\\附件1-数据集原始多模态样本\\MOSEI数据集部分原始视频-100条",
+  "label_file": "D:\\Desktop\\资料\\02研究生\\数学建模\\第二十三届中国研究生数学建模竞赛 - 中文题目\\中文题目\\E题\\E题数据\\E题数据\\附件1-数据集原始多模态样本\\MOSEI数据集部分原始视频-100条\\label-100.xlsx",
+  "reference_file": "D:\\Desktop\\资料\\02研究生\\数学建模\\第二十三届中国研究生数学建模竞赛 - 中文题目\\中文题目\\E题\\E题数据\\E题数据\\附件2-数据集特征文件\\aligned_50.pkl",
+  "media_probe": "opencv_fallback",
+  "missing_video_for_label": [],
+  "extra_video_without_label": []
+}

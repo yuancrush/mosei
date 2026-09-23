@@ -25,6 +25,29 @@ python audit_data.py --data "D:\你的数据目录\aligned_50.pkl"
 python train_baselines.py --data "D:\你的数据目录\aligned_50.pkl" --models text_bigru --validation-only
 ```
 
+第一问还需要放置附件1：
+
+```text
+工作目录/
+├─ pythonproject/
+└─ E题数据/E题数据/
+   ├─ 附件1-数据集原始多模态样本/
+   │  └─ MOSEI数据集部分原始视频-100条/
+   │     ├─ label-100.xlsx
+   │     └─ <video_id>/<clip_id>.mp4
+   └─ 附件2-数据集特征文件/aligned_50.pkl
+```
+
+第一问阶段1的命令为：
+
+```powershell
+python audit_attachment1.py
+python extract_question1_features.py --output-dir outputs/question1_features
+python analyze_question1_quality.py
+```
+
+完整过程、特征含义和质检阈值见 [`experiments/Q1-STAGE1_数据审计与最小对齐流水线.md`](experiments/Q1-STAGE1_数据审计与最小对齐流水线.md)。附件1生成的25维openSMILE音频与35维FaceMesh视觉特征不等同于附件2的74维COVAREP和35维FACET，不得直接混用已训权重。
+
 首次运行建议先确认审计通过：
 
 ```powershell
@@ -90,6 +113,7 @@ pythonproject/
 
 ## 5. 当前阶段结论
 
+- 第一问阶段1已生成100条变长词级和50位置三模态特征；63条自动质检通过，37条待复核，尚不能宣称第一问最终完成。
 - 最小基线显示文本是主信号，直接三模态拼接未稳定超过文本。
 - EXP-001 显示时序编码有效；Text-BiGRU 仍是当前总体候选。
 - 附件3表现为文本完整、音频与视觉联合局部缺失；审计与压力测试见 `experiments/EXP-009_附件3缺失审计与压力测试.md`。
