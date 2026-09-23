@@ -17,13 +17,13 @@
 ## 可直接交给新Codex会话的提示词
 
 ```text
-请只在pythonproject中工作。先完整阅读WRITING_HANDOFF.md和
-reports/问题1完整求解与写作材料.md，再依据其中的最终数字撰写论文问题1章节。
+请先完整阅读pythonproject/WRITING_HANDOFF.md和
+pythonproject/reports/问题1完整求解与写作材料.md，再依据其中的最终数字撰写论文问题1章节。
 写作结构为：问题重述、符号与假设、数据预处理、三模态特征定义、词级物理时间对齐、
 双层输出、质量控制、结果与典型样本、局限性。图表必须使用已有中文图；不得把50写成
 等长时间片，不得把34条质量预警写成失败，不得把20条低可靠候选区间写成可靠时间戳，
 不得声称FaceMesh等同FACET，不得使用外部
-情感数据或无标签伪标签。引用数字前核对outputs/question1_quality/summary.json。
+情感数据或无标签伪标签。引用数字前核对pythonproject/outputs/question1_quality/summary.json。
 ```
 
 ## 写作中的固定口径
