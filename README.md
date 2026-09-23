@@ -50,6 +50,9 @@ python train_baselines.py --models text_bigru --run-name exp001_text_bigru --epo
 - padding 不参与池化、标准化或损失计算。
 - 模型结构、超参数和实验方向只依据验证集调整。
 - 测试集指标不用于日常迭代；只有方案冻结后才统一评估。
+- 附件3仅有 `text_bert` 时，先用 `prepare_attachment3.py` 重建 `text`；不能直接读取不存在的键。
+- 连续回归值 `0` 只表示中性；当前三分类文件编码为 `0=负向、1=中性、2=正向`。
+- 附件3、附件4无标签，不用于伪标签训练；不引入外部情感数据集。
 
 数据审计结果见 [`reports/data_audit.json`](reports/data_audit.json)。
 
@@ -93,6 +96,7 @@ pythonproject/
 - 受 HyperDiff/DCEF 启发的轻量不确定性融合，在 seed 2026 下达到验证集 Macro-F1 0.6270、MAE 0.5821、Pearson 0.6523；三种子均值为0.6139±0.0151、0.5899±0.0132、0.6524±0.0044，因此只作为问题2机制模型。
 - 当前改进主要来自显式模态可用率，判别不确定性尚未充分校准；完整超图扩散暂不实施。
 - 当前最佳任务组合是 Text-BiGRU 分类 + Text+Audio-BiGRU 回归，验证集 Macro-F1/MAE/Pearson 为0.6351/0.5697/0.6693。
+- 三种子集成后当前最佳方案更新为：Text-BiGRU多数投票分类 + Text+Audio-BiGRU均值回归，验证集为0.6343/0.5648/0.6772。
 - 当前仍处于验证集迭代阶段，EXP-011 需要多随机种子复现，不能把单随机种子结果作为最终结论。
 
 历史基线报告见 [`reports/baseline_report.md`](reports/baseline_report.md)，第1天完整结论见 [`reports/第1天实验阶段总结.md`](reports/第1天实验阶段总结.md)。跨会话继续工作时，先阅读 [`NEXT_SESSION.md`](NEXT_SESSION.md)。

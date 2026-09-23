@@ -1,0 +1,26 @@
+[
+  {
+    "classification": "text_bigru_majority_3seed",
+    "regression": "text_regression_mean",
+    "accuracy": 0.6387362637362637,
+    "macro_f1": 0.6343476988305133,
+    "weighted_f1": 0.64582959827957,
+    "mae": 0.5718236108576613,
+    "pearson": 0.6724938645229348,
+    "selection_score": 1.1162336930675612,
+    "mean_vote_agreement": 0.9354395604395604,
+    "unanimous_ratio": 0.8090659340659341
+  },
+  {
+    "classification": "text_bigru_majority_3seed",
+    "regression": "text_audio_regression_mean",
+    "accuracy": 0.6387362637362637,
+    "macro_f1": 0.6343476988305133,
+    "weighted_f1": 0.64582959827957,
+    "mae": 0.5647514482289331,
+    "pearson": 0.6771826428545406,
+    "selection_score": 1.1232798589420763,
+    "mean_vote_agreement": 0.9354395604395604,
+    "unanimous_ratio": 0.8090659340659341
+  }
+]

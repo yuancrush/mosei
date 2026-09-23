@@ -1,0 +1,22 @@
+{
+  "sample_count": 30,
+  "ground_truth_available": false,
+  "use_as_training_pseudo_labels": false,
+  "classification_method": "3-seed Text-BiGRU majority vote",
+  "regression_method": "3-seed Text+Audio-BiGRU arithmetic mean",
+  "class_mapping": {
+    "0": "负向",
+    "1": "中性",
+    "2": "正向"
+  },
+  "classification_counts": {
+    "负向": 7,
+    "中性": 13,
+    "正向": 10
+  },
+  "mean_vote_agreement": 0.9333333333333333,
+  "unanimous_ratio": 0.8,
+  "mean_regression_seed_std": 0.1461537927389145,
+  "mean_audio_coverage": 0.7039888458073569,
+  "mean_vision_coverage": 0.7000672771799059
+}

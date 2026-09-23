@@ -1,0 +1,90 @@
+{
+  "bert_model": "bert-base-uncased",
+  "device": "cuda",
+  "validation_split_reconstruction": {
+    "effective_vectors": 18628,
+    "rmse": 8.322098778990039e-07,
+    "mae": 5.521514481188206e-07,
+    "max_absolute_error": 0.00028896331787109375,
+    "cosine_mean": 1.0,
+    "cosine_min": 0.9999997615814209,
+    "pearson_flat": 0.9999999999987682
+  },
+  "label_semantics": {
+    "train": {
+      "negative_regression_class_0": 967,
+      "zero_regression_neutral_class_1": 758,
+      "positive_regression_class_2": 1670
+    },
+    "valid": {
+      "negative_regression_class_0": 206,
+      "zero_regression_neutral_class_1": 184,
+      "positive_regression_class_2": 338
+    },
+    "test": {
+      "negative_regression_class_0": 207,
+      "zero_regression_neutral_class_1": 158,
+      "positive_regression_class_2": 362
+    }
+  },
+  "attachment3": {
+    "sample_count": 30,
+    "ids": [
+      "附件3_01",
+      "附件3_02",
+      "附件3_03",
+      "附件3_04",
+      "附件3_05",
+      "附件3_06",
+      "附件3_07",
+      "附件3_08",
+      "附件3_09",
+      "附件3_10",
+      "附件3_11",
+      "附件3_12",
+      "附件3_13",
+      "附件3_14",
+      "附件3_15",
+      "附件3_16",
+      "附件3_17",
+      "附件3_18",
+      "附件3_19",
+      "附件3_20",
+      "附件3_21",
+      "附件3_22",
+      "附件3_23",
+      "附件3_24",
+      "附件3_25",
+      "附件3_26",
+      "附件3_27",
+      "附件3_28",
+      "附件3_29",
+      "附件3_30"
+    ],
+    "shapes": {
+      "text_bert": [
+        30,
+        3,
+        50
+      ],
+      "text": [
+        30,
+        50,
+        768
+      ],
+      "audio": [
+        30,
+        50,
+        74
+      ],
+      "vision": [
+        30,
+        50,
+        35
+      ]
+    },
+    "generated_feature_file": "D:\\Desktop\\资料\\02研究生\\数学建模\\第二十三届中国研究生数学建模竞赛 - 中文题目\\中文题目\\E题\\pythonproject\\outputs\\exp013_attachment3_preparation\\attachment3_aligned_features.pkl",
+    "sha256": "5e0a376972ba6efcbc707b9d655b600abc7b6a56378b6350f3aa8f52b96e9a9c",
+    "contains_labels": false
+  }
+}

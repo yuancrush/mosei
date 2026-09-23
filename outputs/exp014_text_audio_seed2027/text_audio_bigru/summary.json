@@ -1,0 +1,21 @@
+{
+  "model": "text_audio_bigru",
+  "modalities": [
+    "text",
+    "audio"
+  ],
+  "parameters": 293402,
+  "best_epoch": 4,
+  "elapsed_seconds": 59.410522199992556,
+  "valid": {
+    "loss": 1.2830035489994092,
+    "classification_loss": 0.9076759684216845,
+    "regression_loss": 0.37532757959523044,
+    "accuracy": 0.6195054945054945,
+    "macro_f1": 0.5875175768165867,
+    "weighted_f1": 0.6135961643513438,
+    "mae": 0.57301926612854,
+    "pearson": 0.6721906615697719,
+    "selection_score": 1.0687018163435118
+  }
+}
