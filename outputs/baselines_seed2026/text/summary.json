@@ -1,0 +1,31 @@
+{
+  "model": "text",
+  "modalities": [
+    "text"
+  ],
+  "parameters": 117252,
+  "best_epoch": 3,
+  "elapsed_seconds": 17.17387880000024,
+  "valid": {
+    "loss": 1.2906923163068162,
+    "classification_loss": 0.8828884946120964,
+    "regression_loss": 0.4078038393796145,
+    "accuracy": 0.6112637362637363,
+    "macro_f1": 0.603454817000428,
+    "weighted_f1": 0.6164843668611801,
+    "mae": 0.6044326424598694,
+    "pearson": 0.6227191538723247,
+    "selection_score": 1.0246964233861295
+  },
+  "test": {
+    "loss": 1.280643469693736,
+    "classification_loss": 0.8380508647496303,
+    "regression_loss": 0.44259262929428395,
+    "accuracy": 0.6313617606602476,
+    "macro_f1": 0.604974576574641,
+    "weighted_f1": 0.6384857143026014,
+    "mae": 0.6412628293037415,
+    "pearson": 0.6572768096679056,
+    "selection_score": 1.048497109807966
+  }
+}

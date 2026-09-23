@@ -1,0 +1,20 @@
+{
+  "model": "text_bigru",
+  "modalities": [
+    "text"
+  ],
+  "parameters": 192133,
+  "best_epoch": 4,
+  "elapsed_seconds": 43.35479569999734,
+  "valid": {
+    "loss": 1.2111444473266602,
+    "classification_loss": 0.8360167820375044,
+    "regression_loss": 0.3751276711841206,
+    "accuracy": 0.6222527472527473,
+    "macro_f1": 0.6197985379443757,
+    "weighted_f1": 0.6318451605368752,
+    "mae": 0.5702734589576721,
+    "pearson": 0.6735275024935419,
+    "selection_score": 1.1032348874520268
+  }
+}

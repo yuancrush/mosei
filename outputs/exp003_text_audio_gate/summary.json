@@ -1,0 +1,23 @@
+[
+  {
+    "model": "text_audio_gated_bigru",
+    "modalities": [
+      "text",
+      "audio"
+    ],
+    "parameters": 309914,
+    "best_epoch": 3,
+    "elapsed_seconds": 63.224158699995314,
+    "valid": {
+      "loss": 1.2468236841998257,
+      "classification_loss": 0.867163883460747,
+      "regression_loss": 0.3796598128565065,
+      "accuracy": 0.6304945054945055,
+      "macro_f1": 0.6213390456285083,
+      "weighted_f1": 0.6362862634976277,
+      "mae": 0.5782343745231628,
+      "pearson": 0.6608934704105387,
+      "selection_score": 1.0894877245313261
+    }
+  }
+]

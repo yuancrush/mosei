@@ -1,0 +1,128 @@
+[
+  {
+    "model": "text",
+    "modalities": [
+      "text"
+    ],
+    "parameters": 117252,
+    "best_epoch": 3,
+    "elapsed_seconds": 17.17387880000024,
+    "valid": {
+      "loss": 1.2906923163068162,
+      "classification_loss": 0.8828884946120964,
+      "regression_loss": 0.4078038393796145,
+      "accuracy": 0.6112637362637363,
+      "macro_f1": 0.603454817000428,
+      "weighted_f1": 0.6164843668611801,
+      "mae": 0.6044326424598694,
+      "pearson": 0.6227191538723247,
+      "selection_score": 1.0246964233861295
+    },
+    "test": {
+      "loss": 1.280643469693736,
+      "classification_loss": 0.8380508647496303,
+      "regression_loss": 0.44259262929428395,
+      "accuracy": 0.6313617606602476,
+      "macro_f1": 0.604974576574641,
+      "weighted_f1": 0.6384857143026014,
+      "mae": 0.6412628293037415,
+      "pearson": 0.6572768096679056,
+      "selection_score": 1.048497109807966
+    }
+  },
+  {
+    "model": "audio",
+    "modalities": [
+      "audio"
+    ],
+    "parameters": 27032,
+    "best_epoch": 4,
+    "elapsed_seconds": 23.644101999998384,
+    "valid": {
+      "loss": 1.7113334032205434,
+      "classification_loss": 1.129568575502752,
+      "regression_loss": 0.5817648381977291,
+      "accuracy": 0.3804945054945055,
+      "macro_f1": 0.3693636791676007,
+      "weighted_f1": 0.3889151727871832,
+      "mae": 0.7868726253509521,
+      "pearson": 0.12159832561673056,
+      "selection_score": 0.2286711296673472
+    },
+    "test": {
+      "loss": 1.7380356008117759,
+      "classification_loss": 1.0904520474569013,
+      "regression_loss": 0.6475835376133453,
+      "accuracy": 0.39339752407152684,
+      "macro_f1": 0.3724731643849588,
+      "weighted_f1": 0.4054747211438806,
+      "mae": 0.8557188510894775,
+      "pearson": 0.24800219227513765,
+      "selection_score": 0.3352357396302706
+    }
+  },
+  {
+    "model": "vision",
+    "modalities": [
+      "vision"
+    ],
+    "parameters": 21962,
+    "best_epoch": 4,
+    "elapsed_seconds": 23.59742159999587,
+    "valid": {
+      "loss": 1.6441021450273283,
+      "classification_loss": 1.0866906354715535,
+      "regression_loss": 0.5574115200357123,
+      "accuracy": 0.4217032967032967,
+      "macro_f1": 0.41666419128517845,
+      "weighted_f1": 0.43146358912142135,
+      "mae": 0.7621521353721619,
+      "pearson": 0.23702007595373686,
+      "selection_score": 0.39963355544819473
+    },
+    "test": {
+      "loss": 1.730779314631445,
+      "classification_loss": 1.0882946843130223,
+      "regression_loss": 0.6424846453220677,
+      "accuracy": 0.4195323246217332,
+      "macro_f1": 0.3971687471527933,
+      "weighted_f1": 0.43060566341830553,
+      "mae": 0.8522205948829651,
+      "pearson": 0.2566189925751132,
+      "selection_score": 0.3697142081002516
+    }
+  },
+  {
+    "model": "fusion",
+    "modalities": [
+      "text",
+      "audio",
+      "vision"
+    ],
+    "parameters": 164958,
+    "best_epoch": 4,
+    "elapsed_seconds": 21.954275600000983,
+    "valid": {
+      "loss": 1.387290467272748,
+      "classification_loss": 0.9639517042663072,
+      "regression_loss": 0.4233387577664721,
+      "accuracy": 0.6071428571428571,
+      "macro_f1": 0.6015268623548237,
+      "weighted_f1": 0.6149399029355872,
+      "mae": 0.6198818683624268,
+      "pearson": 0.6107650554878887,
+      "selection_score": 1.0056646283885702
+    },
+    "test": {
+      "loss": 1.3685609730270574,
+      "classification_loss": 0.9102115875425169,
+      "regression_loss": 0.4583493993403659,
+      "accuracy": 0.6162310866574966,
+      "macro_f1": 0.5974889403681973,
+      "weighted_f1": 0.6260475183750785,
+      "mae": 0.6601450443267822,
+      "pearson": 0.6616868319765299,
+      "selection_score": 1.0391274242357997
+    }
+  }
+]

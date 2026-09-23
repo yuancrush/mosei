@@ -1,0 +1,13 @@
+__pycache__/
+*.py[cod]
+.ipynb_checkpoints/
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# 原始数据由每位合作者在本地单独放置，不进入仓库。
+E题数据/
+*.pkl
+
+# 保留 outputs 中的模型权重、指标、图表和日志。

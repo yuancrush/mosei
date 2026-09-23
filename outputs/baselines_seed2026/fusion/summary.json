@@ -1,0 +1,33 @@
+{
+  "model": "fusion",
+  "modalities": [
+    "text",
+    "audio",
+    "vision"
+  ],
+  "parameters": 164958,
+  "best_epoch": 4,
+  "elapsed_seconds": 21.954275600000983,
+  "valid": {
+    "loss": 1.387290467272748,
+    "classification_loss": 0.9639517042663072,
+    "regression_loss": 0.4233387577664721,
+    "accuracy": 0.6071428571428571,
+    "macro_f1": 0.6015268623548237,
+    "weighted_f1": 0.6149399029355872,
+    "mae": 0.6198818683624268,
+    "pearson": 0.6107650554878887,
+    "selection_score": 1.0056646283885702
+  },
+  "test": {
+    "loss": 1.3685609730270574,
+    "classification_loss": 0.9102115875425169,
+    "regression_loss": 0.4583493993403659,
+    "accuracy": 0.6162310866574966,
+    "macro_f1": 0.5974889403681973,
+    "weighted_f1": 0.6260475183750785,
+    "mae": 0.6601450443267822,
+    "pearson": 0.6616868319765299,
+    "selection_score": 1.0391274242357997
+  }
+}

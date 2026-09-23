@@ -1,0 +1,2 @@
+﻿model,modalities,parameters,best_epoch,elapsed_seconds,split,loss,accuracy,macro_f1,weighted_f1,mae,pearson,selection_score
+text_bigru,text,192133,5,45.797,valid,1.3078257474270496,0.614010989010989,0.6094711102489644,0.6195733190953966,0.5896027684211731,0.6546393917831566,1.0675762458917297

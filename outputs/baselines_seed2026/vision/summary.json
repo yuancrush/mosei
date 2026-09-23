@@ -1,0 +1,31 @@
+{
+  "model": "vision",
+  "modalities": [
+    "vision"
+  ],
+  "parameters": 21962,
+  "best_epoch": 4,
+  "elapsed_seconds": 23.59742159999587,
+  "valid": {
+    "loss": 1.6441021450273283,
+    "classification_loss": 1.0866906354715535,
+    "regression_loss": 0.5574115200357123,
+    "accuracy": 0.4217032967032967,
+    "macro_f1": 0.41666419128517845,
+    "weighted_f1": 0.43146358912142135,
+    "mae": 0.7621521353721619,
+    "pearson": 0.23702007595373686,
+    "selection_score": 0.39963355544819473
+  },
+  "test": {
+    "loss": 1.730779314631445,
+    "classification_loss": 1.0882946843130223,
+    "regression_loss": 0.6424846453220677,
+    "accuracy": 0.4195323246217332,
+    "macro_f1": 0.3971687471527933,
+    "weighted_f1": 0.43060566341830553,
+    "mae": 0.8522205948829651,
+    "pearson": 0.2566189925751132,
+    "selection_score": 0.3697142081002516
+  }
+}

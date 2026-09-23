@@ -1,0 +1,31 @@
+{
+  "model": "audio",
+  "modalities": [
+    "audio"
+  ],
+  "parameters": 27032,
+  "best_epoch": 4,
+  "elapsed_seconds": 23.644101999998384,
+  "valid": {
+    "loss": 1.7113334032205434,
+    "classification_loss": 1.129568575502752,
+    "regression_loss": 0.5817648381977291,
+    "accuracy": 0.3804945054945055,
+    "macro_f1": 0.3693636791676007,
+    "weighted_f1": 0.3889151727871832,
+    "mae": 0.7868726253509521,
+    "pearson": 0.12159832561673056,
+    "selection_score": 0.2286711296673472
+  },
+  "test": {
+    "loss": 1.7380356008117759,
+    "classification_loss": 1.0904520474569013,
+    "regression_loss": 0.6475835376133453,
+    "accuracy": 0.39339752407152684,
+    "macro_f1": 0.3724731643849588,
+    "weighted_f1": 0.4054747211438806,
+    "mae": 0.8557188510894775,
+    "pearson": 0.24800219227513765,
+    "selection_score": 0.3352357396302706
+  }
+}

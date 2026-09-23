@@ -1,0 +1,44 @@
+[
+  {
+    "model": "text_audio_bigru",
+    "modalities": [
+      "text",
+      "audio"
+    ],
+    "parameters": 293402,
+    "best_epoch": 3,
+    "elapsed_seconds": 61.10113829999318,
+    "valid": {
+      "loss": 1.2474364906876951,
+      "classification_loss": 0.8733473610091995,
+      "regression_loss": 0.37408913917593906,
+      "accuracy": 0.6428571428571429,
+      "macro_f1": 0.6177326170252709,
+      "weighted_f1": 0.64238205740262,
+      "mae": 0.5696964263916016,
+      "pearson": 0.6693262472382955,
+      "selection_score": 1.097160055466366
+    }
+  },
+  {
+    "model": "text_vision_bigru",
+    "modalities": [
+      "text",
+      "vision"
+    ],
+    "parameters": 288332,
+    "best_epoch": 4,
+    "elapsed_seconds": 67.33926190000057,
+    "valid": {
+      "loss": 1.2780571782981955,
+      "classification_loss": 0.8813291853600806,
+      "regression_loss": 0.39672799555809946,
+      "accuracy": 0.6167582417582418,
+      "macro_f1": 0.5998165140163291,
+      "weighted_f1": 0.6225830547639059,
+      "mae": 0.5945744514465332,
+      "pearson": 0.6473040314711653,
+      "selection_score": 1.0489290616719835
+    }
+  }
+]
