@@ -22,6 +22,7 @@ EXPERIMENT_MODALITIES = {
     "text_vision_bigru": ("text", "vision"),
     "fusion_bigru": ("text", "audio", "vision"),
     "fusion_gated_bigru": ("text", "audio", "vision"),
+    "fusion_uncertainty_bigru": ("text", "audio", "vision"),
 }
 
 
@@ -129,7 +130,11 @@ class BiGRUEncoder(nn.Module):
 
     def forward(self, values: torch.Tensor, mask: torch.Tensor) -> torch.Tensor:
         projected = self.input(values).masked_fill(~mask.unsqueeze(-1), 0.0)
-        lengths = mask.sum(dim=1).clamp_min(1).cpu()
+        # Local modality failure can create holes inside a sequence.  Counting
+        # valid steps would make pack_padded_sequence truncate valid timesteps
+        # after the hole, so use the final available position as the extent.
+        positions = torch.arange(1, mask.shape[1] + 1, device=mask.device)
+        lengths = (mask.to(torch.long) * positions).amax(dim=1).clamp_min(1).cpu()
         packed = nn.utils.rnn.pack_padded_sequence(
             projected, lengths, batch_first=True, enforce_sorted=False
         )
@@ -168,6 +173,74 @@ class GatedFusion(nn.Module):
         return self.output(fused)
 
 
+class UncertaintyAwareFusion(nn.Module):
+    """Text-anchored fusion using source coverage and Dirichlet vacuity.
+
+    This is a deliberately small, testable adaptation of DCEF rather than a
+    reproduction of HyperDiff. Coverage represents feature-source uncertainty;
+    vacuity derived from per-modality evidence represents discriminative
+    uncertainty. Audio/vision enter as gated residuals, so text remains the
+    stable anchor for Attachment 3.
+    """
+
+    def __init__(self, modalities: Iterable[str], hidden_dim: int) -> None:
+        super().__init__()
+        self.modalities = tuple(modalities)
+        self.evidence_heads = nn.ModuleDict(
+            {modality: nn.Linear(hidden_dim, 3) for modality in self.modalities}
+        )
+        self.residual_gates = nn.ModuleDict(
+            {
+                modality: nn.Linear(hidden_dim * 2, 1)
+                for modality in self.modalities
+                if modality != "text"
+            }
+        )
+        self.output = nn.LayerNorm(hidden_dim)
+
+    def forward(
+        self,
+        embeddings: Dict[str, torch.Tensor],
+        batch: Dict[str, torch.Tensor],
+    ) -> tuple[torch.Tensor, Dict[str, torch.Tensor], torch.Tensor, torch.Tensor]:
+        logits = {
+            modality: self.evidence_heads[modality](embeddings[modality])
+            for modality in self.modalities
+        }
+        certainties = {}
+        coverages = {}
+        text_extent = batch["text_mask"].sum(dim=1).clamp_min(1).to(torch.float32)
+        for modality in self.modalities:
+            evidence = torch.nn.functional.softplus(logits[modality])
+            alpha = evidence + 1.0
+            certainties[modality] = 1.0 - 3.0 / alpha.sum(dim=-1)
+            coverages[modality] = (
+                batch[f"{modality}_mask"].sum(dim=1).to(torch.float32) / text_extent
+            ).clamp(0.0, 1.0)
+
+        anchor = embeddings["text"]
+        fused = anchor
+        weights = []
+        for modality in self.modalities:
+            if modality == "text":
+                weights.append(torch.ones_like(certainties[modality]))
+                continue
+            learned_gate = torch.sigmoid(
+                self.residual_gates[modality](
+                    torch.cat([anchor, embeddings[modality]], dim=-1)
+                ).squeeze(-1)
+            )
+            weight = coverages[modality] * certainties[modality] * learned_gate
+            fused = fused + weight.unsqueeze(-1) * embeddings[modality]
+            weights.append(weight)
+        return (
+            self.output(fused),
+            logits,
+            torch.stack(weights, dim=-1),
+            torch.stack([1.0 - certainties[m] for m in self.modalities], dim=-1),
+        )
+
+
 class MultiTaskTemporal(nn.Module):
     def __init__(
         self,
@@ -187,7 +260,11 @@ class MultiTaskTemporal(nn.Module):
             }
         )
         self.gated = "gated_bigru" in model_name
-        if self.gated:
+        self.uncertainty_aware = "uncertainty_bigru" in model_name
+        if self.uncertainty_aware:
+            self.fusion = UncertaintyAwareFusion(self.modalities, hidden_dim)
+            fused_dim = hidden_dim
+        elif self.gated:
             self.fusion = GatedFusion(self.modalities, hidden_dim)
             fused_dim = hidden_dim
         else:
@@ -209,7 +286,17 @@ class MultiTaskTemporal(nn.Module):
             )
             for modality in self.modalities
         }
-        if self.fusion is None:
+        extra_outputs = {}
+        if self.uncertainty_aware:
+            fused, modality_logits, fusion_weights, modality_uncertainty = self.fusion(
+                embeddings, batch
+            )
+            extra_outputs = {
+                "modality_logits": modality_logits,
+                "fusion_weights": fusion_weights,
+                "modality_uncertainty": modality_uncertainty,
+            }
+        elif self.fusion is None:
             fused = torch.cat(list(embeddings.values()), dim=-1)
         else:
             fused = self.fusion(embeddings)
@@ -217,6 +304,7 @@ class MultiTaskTemporal(nn.Module):
         return {
             "classification_logits": self.classifier(shared),
             "regression": self.regressor(shared).squeeze(-1),
+            **extra_outputs,
         }
 
     def trainable_parameter_count(self) -> int:

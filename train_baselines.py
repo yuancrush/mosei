@@ -48,6 +48,20 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--weight-decay", type=float, default=1e-4)
     parser.add_argument("--regression-weight", type=float, default=1.0)
     parser.add_argument(
+        "--auxiliary-weight",
+        type=float,
+        default=0.0,
+        help="Per-modality auxiliary classification loss weight",
+    )
+    parser.add_argument(
+        "--missing-augmentation-prob",
+        type=float,
+        default=0.0,
+        help="Probability of applying a joint local audio/vision missing block",
+    )
+    parser.add_argument("--missing-ratio-min", type=float, default=0.1)
+    parser.add_argument("--missing-ratio-max", type=float, default=0.5)
+    parser.add_argument(
         "--regression-loss",
         choices=("smooth_l1", "mse"),
         default="smooth_l1",
@@ -86,6 +100,7 @@ def batch_losses(
     classification_loss: nn.Module,
     regression_loss: nn.Module,
     regression_weight: float,
+    auxiliary_weight: float = 0.0,
 ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor, Dict[str, torch.Tensor]]:
     outputs = model(batch)
     cls_loss = classification_loss(
@@ -93,6 +108,14 @@ def batch_losses(
     )
     reg_loss = regression_loss(outputs["regression"], batch["regression_label"])
     total = cls_loss + regression_weight * reg_loss
+    if auxiliary_weight > 0 and "modality_logits" in outputs:
+        auxiliary = torch.stack(
+            [
+                classification_loss(logits, batch["classification_label"])
+                for logits in outputs["modality_logits"].values()
+            ]
+        ).mean()
+        total = total + auxiliary_weight * auxiliary
     return total, cls_loss, reg_loss, outputs
 
 
@@ -105,6 +128,9 @@ def train_epoch(
     regression_weight: float,
     device: torch.device,
     max_batches: int | None,
+    missing_augmentation_prob: float = 0.0,
+    missing_ratio_min: float = 0.1,
+    missing_ratio_max: float = 0.5,
 ) -> Dict[str, float]:
     model.train()
     totals = np.zeros(3, dtype=np.float64)
@@ -112,6 +138,13 @@ def train_epoch(
     for batch_index, batch in enumerate(loader):
         if max_batches is not None and batch_index >= max_batches:
             break
+        if missing_augmentation_prob > 0:
+            batch = augment_joint_av_missingness(
+                batch,
+                missing_augmentation_prob,
+                missing_ratio_min,
+                missing_ratio_max,
+            )
         batch = move_batch(batch, device)
         optimizer.zero_grad(set_to_none=True)
         total, cls_loss, reg_loss, _ = batch_losses(
@@ -120,6 +153,7 @@ def train_epoch(
             classification_loss,
             regression_loss,
             regression_weight,
+            getattr(model, "auxiliary_weight", 0.0),
         )
         total.backward()
         torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=5.0)
@@ -134,6 +168,37 @@ def train_epoch(
         "classification_loss": float(totals[1] / samples),
         "regression_loss": float(totals[2] / samples),
     }
+
+
+def augment_joint_av_missingness(
+    batch: Dict[str, object],
+    probability: float,
+    ratio_min: float,
+    ratio_max: float,
+) -> Dict[str, object]:
+    """Apply one shared local missing interval to audio and vision during training."""
+    if not (0.0 <= probability <= 1.0 and 0.0 < ratio_min <= ratio_max <= 1.0):
+        raise ValueError("Invalid missing-augmentation probability or ratio range")
+    changed = dict(batch)
+    changed["audio"] = batch["audio"].clone()
+    changed["vision"] = batch["vision"].clone()
+    changed["audio_mask"] = batch["audio_mask"].clone()
+    changed["vision_mask"] = batch["vision_mask"].clone()
+    for index in range(batch["text_mask"].shape[0]):
+        if torch.rand(()) >= probability:
+            continue
+        positions = torch.nonzero(batch["text_mask"][index], as_tuple=False).flatten()
+        if len(positions) == 0:
+            continue
+        length = int(positions[-1].item() + 1)
+        ratio = float(torch.empty(()).uniform_(ratio_min, ratio_max).item())
+        width = max(1, min(length, int(np.ceil(length * ratio))))
+        start = int(torch.randint(0, length - width + 1, ()).item())
+        end = start + width
+        for modality in ("audio", "vision"):
+            changed[modality][index, start:end] = 0.0
+            changed[f"{modality}_mask"][index, start:end] = False
+    return changed
 
 
 @torch.inference_mode()
@@ -165,6 +230,7 @@ def evaluate(
             classification_loss,
             regression_loss,
             regression_weight,
+            getattr(model, "auxiliary_weight", 0.0),
         )
         batch_size = batch["classification_label"].shape[0]
         totals += np.array(
@@ -258,6 +324,7 @@ def train_model(
         hidden_dim=args.hidden_dim,
         dropout=args.dropout,
     ).to(device)
+    model.auxiliary_weight = args.auxiliary_weight
     class_weights = module.class_weights(args.class_weight_power).to(device)
     classification_loss = nn.CrossEntropyLoss(weight=class_weights)
     if args.regression_loss == "mse":
@@ -291,6 +358,9 @@ def train_model(
             args.regression_weight,
             device,
             max_batches,
+            args.missing_augmentation_prob,
+            args.missing_ratio_min,
+            args.missing_ratio_max,
         )
         valid_metrics = evaluate(
             model,

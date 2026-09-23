@@ -1,0 +1,24 @@
+[
+  {
+    "model": "fusion_uncertainty_bigru",
+    "modalities": [
+      "text",
+      "audio",
+      "vision"
+    ],
+    "parameters": 358252,
+    "best_epoch": 2,
+    "elapsed_seconds": 73.19184609998774,
+    "valid": {
+      "loss": 1.4379770113871648,
+      "classification_loss": 0.8494691743955507,
+      "regression_loss": 0.38304353873808306,
+      "accuracy": 0.6346153846153846,
+      "macro_f1": 0.6270179997334919,
+      "weighted_f1": 0.6400420465328255,
+      "mae": 0.5821316838264465,
+      "pearson": 0.6523367101135378,
+      "selection_score": 1.0853108152382143
+    }
+  }
+]

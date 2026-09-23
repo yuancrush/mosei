@@ -1,0 +1,32 @@
+[
+  {
+    "classification_expert": "text_bigru",
+    "regression_expert": "text_bigru",
+    "accuracy": 0.6428571428571429,
+    "macro_f1": 0.6351401222778952,
+    "weighted_f1": 0.6485446702714822,
+    "mae": 0.5753152445368059,
+    "pearson": 0.6629369186510061,
+    "selection_score": 1.106305292749966
+  },
+  {
+    "classification_expert": "text_bigru",
+    "regression_expert": "text_audio_bigru",
+    "accuracy": 0.6428571428571429,
+    "macro_f1": 0.6351401222778952,
+    "weighted_f1": 0.6485446702714822,
+    "mae": 0.5696964249351307,
+    "pearson": 0.6693262806707492,
+    "selection_score": 1.114567594636934
+  },
+  {
+    "classification_expert": "text_bigru",
+    "regression_expert": "uncertainty_aug",
+    "accuracy": 0.6428571428571429,
+    "macro_f1": 0.6351401222778952,
+    "weighted_f1": 0.6485446702714822,
+    "mae": 0.5821317407497011,
+    "pearson": 0.6523366740380998,
+    "selection_score": 1.0934328827327613
+  }
+]

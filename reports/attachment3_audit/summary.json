@@ -1,0 +1,45 @@
+{
+  "data_dir": "D:\\Desktop\\资料\\02研究生\\数学建模\\第二十三届中国研究生数学建模竞赛 - 中文题目\\中文题目\\E题\\E题数据\\E题数据\\附件3-模态缺失特征样本\\对齐版本",
+  "sample_count": 30,
+  "effective_length": {
+    "min": 8,
+    "mean": 22.166666666666668,
+    "max": 50
+  },
+  "mean_missing_ratio": {
+    "text": 0.0,
+    "audio": 0.2960111541926432,
+    "vision": 0.29993272282009414
+  },
+  "reference_valid_mean_zero_ratio": {
+    "audio": 0.10260712051274244,
+    "vision": 0.1558880601662007
+  },
+  "excess_over_reference": {
+    "audio": 0.19340403367990072,
+    "vision": 0.14404466265389346
+  },
+  "samples_with_missing": {
+    "text": 0,
+    "audio": 30,
+    "vision": 30
+  },
+  "audio_vision_same_mask_count": 29,
+  "audio_missing_ratio_quantiles": [
+    0.12121212121212122,
+    0.20875959079283887,
+    0.2649122807017544,
+    0.37410714285714286,
+    0.5384615384615384
+  ],
+  "audio_run_count_distribution": {
+    "2": 3,
+    "6": 4,
+    "7": 4,
+    "4": 6,
+    "5": 5,
+    "3": 6,
+    "10": 1,
+    "8": 1
+  }
+}
