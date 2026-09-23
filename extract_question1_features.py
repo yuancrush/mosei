@@ -354,8 +354,8 @@ def encode_text_and_align(
     fixed_model_input = {key: value.to(device) for key, value in fixed_encoding.items()}
     with torch.inference_mode():
         text_features = bert_model(**fixed_model_input).last_hidden_state[0].cpu().numpy()
-    fixed_attention = fixed_encoding["attention_mask"][0].numpy().astype(bool)
-    text_features[~fixed_attention] = 0
+    # 保留BERT在padding位置的原始隐状态，以便与附件2的50位置接口数值一致。
+    # 下游池化必须使用text_bert[1]排除padding，不能把这些非零向量当作有效文本。
 
     # 原始字符串中的可对齐词区间，用于把WordPiece重新指向强制对齐词。
     raw_spans = [match.span() for match in re.finditer(r"\S+", text)]
@@ -526,6 +526,19 @@ def main() -> None:
             visual_feature_names=np.asarray([name for name, _, _ in VISUAL_PAIRS]),
             regression_label=np.asarray(float(row["regression_label"]), dtype=np.float32),
             annotation=np.asarray(str(row["annotation"])),
+            video_duration_s=np.asarray(float(row["duration_s"]), dtype=np.float32),
+            text_effective_duration_s=np.asarray(
+                float(np.maximum(intervals[:, 1] - intervals[:, 0], 0).sum()),
+                dtype=np.float32,
+            ),
+            audio_effective_duration_s=np.asarray(
+                float(np.maximum(intervals[:, 1] - intervals[:, 0], 0)[audio_word_mask].sum()),
+                dtype=np.float32,
+            ),
+            visual_effective_duration_s=np.asarray(
+                float(np.maximum(intervals[:, 1] - intervals[:, 0], 0)[vision_word_mask].sum()),
+                dtype=np.float32,
+            ),
         )
         retained_word_count = len(set(arrays["token_word_index"][arrays["token_word_index"] >= 0].tolist()))
         low_alignment_ratio = float((alignment_scores < 0.5).mean())
@@ -549,6 +562,16 @@ def main() -> None:
                 "low_alignment_word_ratio": low_alignment_ratio,
                 "aligned_start_s": float(intervals[0, 0]),
                 "aligned_end_s": float(intervals[-1, 1]),
+                "video_duration_s": float(row["duration_s"]),
+                "text_effective_duration_s": float(
+                    np.maximum(intervals[:, 1] - intervals[:, 0], 0).sum()
+                ),
+                "audio_effective_duration_s": float(
+                    np.maximum(intervals[:, 1] - intervals[:, 0], 0)[audio_word_mask].sum()
+                ),
+                "visual_effective_duration_s": float(
+                    np.maximum(intervals[:, 1] - intervals[:, 0], 0)[vision_word_mask].sum()
+                ),
                 "audio_word_coverage": float(audio_word_mask.mean()),
                 "visual_word_coverage": float(vision_word_mask.mean()),
                 "face_frame_detection_ratio": face_detection_ratio,

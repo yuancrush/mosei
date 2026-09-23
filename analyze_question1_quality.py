@@ -54,7 +54,9 @@ def validate_sample(path: Path) -> dict[str, bool]:
         "sep_position_valid": bool(
             valid_token_count >= 2 and data["text_bert"][0, valid_token_count - 1] == 102
         ),
-        "padding_text_zero": bool(np.all(data["text"][padding] == 0)),
+        # 附件2的BERT padding隐状态本身非零；有效性由attention mask定义。
+        "padding_text_finite": bool(np.isfinite(data["text"][padding]).all()),
+        "padding_excluded_by_mask": bool(np.all(data["text_bert"][1, padding] == 0)),
     }
 
 
@@ -157,7 +159,10 @@ def main() -> None:
         "all_intervals_ordered": bool(validation["interval_order_valid"].all()),
         "all_nonword_av_zero": bool(validation["nonword_av_zero"].all()),
         "all_sep_positions_valid": bool(validation["sep_position_valid"].all()),
-        "all_padding_text_zero": bool(validation["padding_text_zero"].all()),
+        "all_padding_text_finite": bool(validation["padding_text_finite"].all()),
+        "all_padding_excluded_by_mask": bool(validation["padding_excluded_by_mask"].all()),
+        "usable_time_mapping_count": int(log.get("time_mapping_usable", pd.Series(True, index=log.index)).sum()),
+        "low_reliability_time_mapping_count": int((~log.get("time_mapping_usable", pd.Series(True, index=log.index)).astype(bool)).sum()),
         "output_npz_count": len(list(sample_dir.glob("*.npz"))),
         "output_size_bytes": sum(path.stat().st_size for path in sample_dir.glob("*.npz")),
     }

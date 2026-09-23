@@ -1,0 +1,11 @@
+{
+  "sample_count": 100,
+  "text_padding_policy": "保留BERT原始隐状态；由text_bert[1]排除padding",
+  "samples_with_padding": 93,
+  "samples_without_padding": 7,
+  "all_padding_positions_preserve_bert_output": true,
+  "mean_video_duration_s": 11.154742555555556,
+  "mean_text_effective_duration_s": 4.814986187815666,
+  "mean_audio_effective_duration_s": 4.814986187815666,
+  "mean_visual_effective_duration_s": 4.451086931824684
+}

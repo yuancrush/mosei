@@ -1,0 +1,16 @@
+{
+  "reviewed_count": 22,
+  "asr_model": "openai/whisper-base.en",
+  "mean_wer": 1.4039123813833316,
+  "median_wer": 1.0,
+  "all_temporal_structures_valid": true,
+  "review_level_counts": {
+    "ASR差异较大，保留低置信标记": 20,
+    "基本支持官方转写": 1,
+    "高度支持官方转写": 1
+  },
+  "interpretation": "独立ASR只用于复核分层；高WER不自动判定官方转写或强制对齐错误。",
+  "high_mms_count": 78,
+  "independent_asr_supported_count": 2,
+  "low_reliability_count": 20
+}

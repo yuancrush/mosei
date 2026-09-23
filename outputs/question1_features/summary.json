@@ -16,5 +16,14 @@
   "quality_pass_count": 66,
   "quality_review_count": 34,
   "truncated_sample_count": 6,
-  "total_elapsed_s": 214.33657320008206
+  "total_elapsed_s": 214.33657320008206,
+  "text_padding_policy": "保留BERT原始隐状态；由text_bert[1]排除padding",
+  "all_samples_have_nonzero_bert_padding": false,
+  "mean_video_duration_s": 11.154742555555556,
+  "mean_text_effective_duration_s": 4.814986187815666,
+  "mean_audio_effective_duration_s": 4.814986187815666,
+  "mean_visual_effective_duration_s": 4.451086931824684,
+  "samples_with_padding": 93,
+  "samples_without_padding": 7,
+  "all_padding_positions_preserve_bert_output": true
 }

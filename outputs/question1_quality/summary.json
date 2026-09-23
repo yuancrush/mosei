@@ -37,7 +37,10 @@
   "all_intervals_ordered": true,
   "all_nonword_av_zero": true,
   "all_sep_positions_valid": true,
-  "all_padding_text_zero": true,
+  "all_padding_text_finite": true,
+  "all_padding_excluded_by_mask": true,
+  "usable_time_mapping_count": 80,
+  "low_reliability_time_mapping_count": 20,
   "output_npz_count": 100,
-  "output_size_bytes": 13936688
+  "output_size_bytes": 21344178
 }

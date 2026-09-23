@@ -58,11 +58,11 @@ def build_full_summary(
         common = {
             "样本编号": row.sample_id,
             "原始视频相对路径": row.relative_path,
-            "原始有效时长_秒": round(float(row.duration_s), 6),
+            "视频总时长_秒": round(float(row.duration_s), 6),
             "词数": int(row.word_count),
             "对齐轴": "MMS强制对齐得到的词级物理时间区间",
             "50位置层有效token数": valid_token_count,
-            "填充规则": "[CLS]/[SEP]/padding的音视频为0；无有效观测时为0并保留mask",
+            "填充规则": "padding音视频为0；文本保留BERT输出，并由text_bert注意力掩码排除",
             "平均对齐置信度": round(float(row.mean_alignment_score), 6),
             "质量状态": quality_label(row.status),
             "特征文件": row.output_file,
@@ -78,6 +78,7 @@ def build_full_summary(
                     "50位置层形状": "50×768",
                     "原始帧/位置粒度": "WordPiece，词级为子词均值",
                     "有效覆盖率": 1.0,
+                    "模态有效时长_秒": round(float(row.text_effective_duration_s), 6),
                 },
                 {
                     **common,
@@ -88,6 +89,7 @@ def build_full_summary(
                     "50位置层形状": "50×25",
                     "原始帧/位置粒度": "openSMILE帧，按词区间均值聚合",
                     "有效覆盖率": round(float(row.audio_word_coverage), 6),
+                    "模态有效时长_秒": round(float(row.audio_effective_duration_s), 6),
                 },
                 {
                     **common,
@@ -98,6 +100,7 @@ def build_full_summary(
                     "50位置层形状": "50×35",
                     "原始帧/位置粒度": "10 FPS采样，按词区间均值聚合",
                     "有效覆盖率": round(float(row.visual_word_coverage), 6),
+                    "模态有效时长_秒": round(float(row.visual_effective_duration_s), 6),
                 },
             ]
         )
@@ -234,6 +237,7 @@ def package_readme() -> str:
 - `features/`：附件1全部100条样本的npz特征。
 - `问题1_全量特征汇总.csv`：按样本和模态展开的300行可追溯索引。
 - `extraction_log.csv`：对齐置信度、模态覆盖率和质量预警。
+- `低对齐置信度样本ASR复核.csv`：22条低MMS分样本的独立Whisper复核。
 - `read_question1_npz.py`：读取示例。
 - `source/`：数据审计、特征提取、质量分析和环境配置。
 
@@ -249,6 +253,8 @@ conda activate mosei
 python audit_attachment1.py
 python extract_question1_features.py --output-dir outputs/question1_features
 python upgrade_question1_visual.py
+python finalize_question1_stage_a.py
+python review_question1_alignment.py
 python analyze_question1_quality.py
 python validate_question1_reference.py
 python prepare_question1_submission.py
@@ -258,7 +264,7 @@ python prepare_question1_submission.py
 
 ## 时间轴
 
-每个词的 `word_intervals[j]=[s_j,e_j)` 对应原视频的秒级物理时间。语音和视觉帧按该区间取均值。完整变长词级特征保存在 `word_*`字段；50位置是为与附件2建模接口保持一致的兼容层。
+每个词的 `word_intervals[j]=[s_j,e_j)` 对应原视频的秒级物理时间。语音和视觉帧按该区间取均值。完整变长词级特征保存在 `word_*`字段；50位置是为与附件2建模接口保持一致的兼容层。文本padding位置保留BERT原始隐状态，下游必须使用`text_bert[1]`做掩码池化。
 """
 
 
@@ -272,6 +278,10 @@ data = np.load(sample_path)
 print("sample_id:", data["sample_id"].item())
 print("word-level:", data["word_text"].shape, data["word_audio"].shape, data["word_vision"].shape)
 print("aligned-50:", data["text"].shape, data["audio"].shape, data["vision"].shape)
+print("durations:", data["video_duration_s"].item(), data["text_effective_duration_s"].item(),
+      data["audio_effective_duration_s"].item(), data["visual_effective_duration_s"].item())
+print("alignment reliability:", data["alignment_reliability"].item(),
+      "usable=", data["time_mapping_usable"].item())
 print("first words and intervals:")
 for word, interval in zip(data["words"][:5], data["word_intervals"][:5]):
     print(str(word), interval.tolist())
@@ -293,6 +303,8 @@ def create_zip(
         PROJECT_ROOT / "audit_attachment1.py",
         PROJECT_ROOT / "extract_question1_features.py",
         PROJECT_ROOT / "upgrade_question1_visual.py",
+        PROJECT_ROOT / "finalize_question1_stage_a.py",
+        PROJECT_ROOT / "review_question1_alignment.py",
         PROJECT_ROOT / "analyze_question1_quality.py",
         PROJECT_ROOT / "validate_question1_reference.py",
         PROJECT_ROOT / "prepare_question1_submission.py",
@@ -326,6 +338,14 @@ def create_zip(
         archive.write(
             PROJECT_ROOT / "reports/question1_reference_validation/comparison.csv",
             "问题1可复现提交包/reference_validation_comparison.csv",
+        )
+        archive.write(
+            PROJECT_ROOT / "reports/question1_stage_a/alignment_review_summary.json",
+            "问题1可复现提交包/alignment_review_summary.json",
+        )
+        archive.write(
+            PROJECT_ROOT / "reports/question1_stage_a/低对齐置信度样本ASR复核.csv",
+            "问题1可复现提交包/低对齐置信度样本ASR复核.csv",
         )
         archive.write(
             PROJECT_ROOT / "reports/问题1完整求解与写作材料.md",

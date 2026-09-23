@@ -49,8 +49,11 @@ def main() -> None:
             reference_vision_support = np.any(values["vision"][position] != 0, axis=1)
             generated_audio_support = generated["audio_mask"]
             generated_vision_support = generated["vision_mask"]
-            text_rmse = float(np.sqrt(np.mean(
+            valid_text_rmse = float(np.sqrt(np.mean(
                 (generated["text"][valid] - values["text"][position][valid]) ** 2
+            )))
+            full_text_rmse = float(np.sqrt(np.mean(
+                (generated["text"] - values["text"][position]) ** 2
             )))
         records.append({
             "sample_id": row.sample_id,
@@ -58,7 +61,8 @@ def main() -> None:
             "token_ids_equal": bool(np.array_equal(generated_bert[0], reference_bert[0])),
             "attention_mask_equal": bool(np.array_equal(generated_bert[1], reference_bert[1])),
             "token_type_ids_equal": bool(np.array_equal(generated_bert[2], reference_bert[2])),
-            "text_feature_rmse": text_rmse,
+            "valid_text_feature_rmse": valid_text_rmse,
+            "full_50_text_feature_rmse": full_text_rmse,
             "audio_support_jaccard": jaccard(generated_audio_support, reference_audio_support),
             "vision_support_jaccard": jaccard(generated_vision_support, reference_vision_support),
         })
@@ -72,7 +76,8 @@ def main() -> None:
         "token_ids_exact_count": int(table["token_ids_equal"].sum()),
         "attention_mask_exact_count": int(table["attention_mask_equal"].sum()),
         "token_type_ids_exact_count": int(table["token_type_ids_equal"].sum()),
-        "mean_text_feature_rmse": float(table["text_feature_rmse"].mean()),
+        "mean_valid_text_feature_rmse": float(table["valid_text_feature_rmse"].mean()),
+        "mean_full_50_text_feature_rmse": float(table["full_50_text_feature_rmse"].mean()),
         "mean_audio_support_jaccard": float(table["audio_support_jaccard"].mean()),
         "mean_vision_support_jaccard": float(table["vision_support_jaccard"].mean()),
         "note": "音频/视觉提取器不同，Jaccard仅作时序支持诊断，不要求等于1。",

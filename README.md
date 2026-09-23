@@ -43,12 +43,15 @@ python train_baselines.py --data "D:\你的数据目录\aligned_50.pkl" --models
 ```powershell
 python audit_attachment1.py
 python extract_question1_features.py --output-dir outputs/question1_features
+python upgrade_question1_visual.py
+python finalize_question1_stage_a.py
+python review_question1_alignment.py
 python analyze_question1_quality.py
 python validate_question1_reference.py
 python prepare_question1_submission.py
 ```
 
-问题1已完整完成。题干拆解、模型公式、最终结果和写作材料见 [`reports/问题1完整求解与写作材料.md`](reports/问题1完整求解与写作材料.md)，合作者跨会话写作见 [`WRITING_HANDOFF.md`](WRITING_HANDOFF.md)。附件1生成的25维openSMILE音频与35维FaceMesh视觉特征不等同于附件2的74维COVAREP和35维FACET，不得直接混用已训权重。
+问题1工程交付已冻结。100条均有完整特征，80条词级时间映射可用，20条经独立ASR复核后标为低可靠。题干拆解、模型公式、最终结果和写作材料见 [`reports/问题1完整求解与写作材料.md`](reports/问题1完整求解与写作材料.md)，合作者跨会话写作见 [`WRITING_HANDOFF.md`](WRITING_HANDOFF.md)。附件1生成的25维openSMILE音频与35维FaceMesh视觉特征不等同于附件2的74维COVAREP和35维FACET，不得直接混用已训权重。
 
 首次运行建议先确认审计通过：
 
@@ -115,7 +118,7 @@ pythonproject/
 
 ## 5. 当前阶段结论
 
-- 第一问已完整完成：100条均通过结构检查，66条高置信、34条质量预警；视觉回退后平均词覆盖率84.16%，18条重合样本的BERT接口全部一致。
+- 第一问已冻结：100条均通过结构检查，66条自动质检通过、34条触发质量预警；22条低MMS分样本独立复核后，最终80条时间映射可用、20条低可靠；完整50位置BERT特征与附件2的RMSE为6.22×10⁻⁷。
 - 最小基线显示文本是主信号，直接三模态拼接未稳定超过文本。
 - EXP-001 显示时序编码有效；Text-BiGRU 仍是当前总体候选。
 - 附件3表现为文本完整、音频与视觉联合局部缺失；审计与压力测试见 `experiments/EXP-009_附件3缺失审计与压力测试.md`。
