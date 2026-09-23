@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+"""从附件1视频提取文本、语音、视觉特征并建立词级物理时间对齐。"""
+
 import argparse
 import csv
 import json
@@ -183,9 +185,56 @@ def face_geometry(landmarks: Any) -> np.ndarray:
     )
 
 
+def find_face_crop(frame: np.ndarray, detectors: list[Any]) -> np.ndarray | None:
+    """用传统检测器定位小脸/侧脸，并返回带边界扩张的人脸裁剪。
+
+    该函数只在整帧 FaceMesh 失败时触发，不会改变已经可靠检出的帧。
+    使用正脸、侧脸和水平翻转侧脸三路检测，选择面积最大的候选框。
+    """
+    gray_full = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    # 将长边压到480像素，显著降低逐帧回退检测开销；随后把框映射回原图。
+    resize_scale = min(1.0, 480.0 / max(gray_full.shape))
+    gray = (
+        cv2.resize(gray_full, None, fx=resize_scale, fy=resize_scale)
+        if resize_scale < 1.0
+        else gray_full
+    )
+    candidates: list[tuple[int, int, int, int]] = []
+    for detector_index, detector in enumerate(detectors):
+        images = [(gray, False)]
+        if detector_index == 1:
+            images.append((cv2.flip(gray, 1), True))
+        for image, flipped in images:
+            boxes = detector.detectMultiScale(
+                image,
+                scaleFactor=1.08,
+                minNeighbors=3,
+                minSize=(18, 18),
+            )
+            for x, y, width, height in boxes:
+                if flipped:
+                    x = gray.shape[1] - x - width
+                candidates.append(
+                    tuple(round(value / resize_scale) for value in (x, y, width, height))
+                )
+        # 正脸检测已有候选时无需再运行更慢的侧脸分支。
+        if candidates:
+            break
+    if not candidates:
+        return None
+
+    x, y, width, height = max(candidates, key=lambda box: box[2] * box[3])
+    margin_x, margin_y = round(width * 0.35), round(height * 0.35)
+    x0, y0 = max(0, x - margin_x), max(0, y - margin_y)
+    x1 = min(frame.shape[1], x + width + margin_x)
+    y1 = min(frame.shape[0], y + height + margin_y)
+    crop = frame[y0:y1, x0:x1]
+    return crop if crop.size else None
+
+
 def extract_visual_words(
     video_path: Path, intervals: np.ndarray, sample_fps: float = 10.0
-) -> tuple[np.ndarray, np.ndarray, float]:
+) -> tuple[np.ndarray, np.ndarray, float, float]:
     import mediapipe as mp
 
     capture = cv2.VideoCapture(str(video_path))
@@ -197,13 +246,27 @@ def extract_visual_words(
     times: list[float] = []
     sampled_frames = 0
     detected_frames = 0
+    crop_fallback_frames = 0
+    detectors = [
+        cv2.CascadeClassifier(
+            str(Path(cv2.data.haarcascades) / "haarcascade_frontalface_default.xml")
+        ),
+        cv2.CascadeClassifier(
+            str(Path(cv2.data.haarcascades) / "haarcascade_profileface.xml")
+        ),
+    ]
     with mp.solutions.face_mesh.FaceMesh(
         static_image_mode=False,
         max_num_faces=1,
         refine_landmarks=True,
         min_detection_confidence=0.5,
         min_tracking_confidence=0.5,
-    ) as face_mesh:
+    ) as face_mesh, mp.solutions.face_mesh.FaceMesh(
+        static_image_mode=True,
+        max_num_faces=1,
+        refine_landmarks=True,
+        min_detection_confidence=0.35,
+    ) as crop_face_mesh:
         frame_index = 0
         while True:
             ok, frame = capture.read()
@@ -213,10 +276,20 @@ def extract_visual_words(
                 sampled_frames += 1
                 rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
                 result = face_mesh.process(rgb)
-                if result.multi_face_landmarks:
-                    values.append(face_geometry(result.multi_face_landmarks[0]))
+                landmarks = result.multi_face_landmarks
+                used_crop_fallback = False
+                if not landmarks:
+                    crop = find_face_crop(frame, detectors)
+                    if crop is not None:
+                        crop_rgb = cv2.cvtColor(crop, cv2.COLOR_BGR2RGB)
+                        crop_result = crop_face_mesh.process(crop_rgb)
+                        landmarks = crop_result.multi_face_landmarks
+                        used_crop_fallback = bool(landmarks)
+                if landmarks:
+                    values.append(face_geometry(landmarks[0]))
                     times.append(frame_index / native_fps)
                     detected_frames += 1
+                    crop_fallback_frames += int(used_crop_fallback)
             frame_index += 1
     capture.release()
     if values:
@@ -227,7 +300,8 @@ def extract_visual_words(
         aggregated = np.zeros((len(intervals), len(VISUAL_PAIRS)), dtype=np.float32)
         mask = np.zeros(len(intervals), dtype=bool)
     detection_ratio = detected_frames / sampled_frames if sampled_frames else 0.0
-    return aggregated, mask, detection_ratio
+    fallback_ratio = crop_fallback_frames / sampled_frames if sampled_frames else 0.0
+    return aggregated, mask, detection_ratio, fallback_ratio
 
 
 def encode_text_and_align(
@@ -242,7 +316,8 @@ def encode_text_and_align(
     bert_model: torch.nn.Module,
     device: torch.device,
 ) -> dict[str, np.ndarray]:
-    encoding = bert_tokenizer(
+    # 变长词级层用于保存全部可对齐词，不受50位置接口限制。
+    word_encoding = bert_tokenizer(
         words,
         is_split_into_words=True,
         add_special_tokens=True,
@@ -251,14 +326,11 @@ def encode_text_and_align(
         padding=False,
         return_tensors="pt",
     )
-    word_ids = encoding.word_ids(batch_index=0)
-    model_input = {key: value.to(device) for key, value in encoding.items()}
+    word_ids = word_encoding.word_ids(batch_index=0)
+    word_model_input = {key: value.to(device) for key, value in word_encoding.items()}
     with torch.inference_mode():
-        full_text_features = bert_model(**model_input).last_hidden_state[0].cpu().numpy()
+        full_text_features = bert_model(**word_model_input).last_hidden_state[0].cpu().numpy()
 
-    text_features = np.zeros((MAX_LENGTH, full_text_features.shape[1]), dtype=np.float32)
-    copied_length = min(MAX_LENGTH, len(word_ids))
-    text_features[:copied_length] = full_text_features[:copied_length]
     word_text = np.zeros((len(words), full_text_features.shape[1]), dtype=np.float32)
     word_counts = np.zeros(len(words), dtype=np.int16)
     for token_index, word_index in enumerate(word_ids):
@@ -267,13 +339,47 @@ def encode_text_and_align(
             word_counts[word_index] += 1
     word_text /= np.maximum(word_counts[:, None], 1)
 
+    # 固定50位置层直接按原始文本编码，确保截断后最后一个有效位置仍为[SEP]，
+    # 并保留纯标点（例如省略号）。这与附件2的BERT接口规则一致。
+    fixed_encoding = bert_tokenizer(
+        text,
+        add_special_tokens=True,
+        truncation=True,
+        max_length=MAX_LENGTH,
+        padding="max_length",
+        return_offsets_mapping=True,
+        return_tensors="pt",
+    )
+    offsets = fixed_encoding.pop("offset_mapping")[0].numpy()
+    fixed_model_input = {key: value.to(device) for key, value in fixed_encoding.items()}
+    with torch.inference_mode():
+        text_features = bert_model(**fixed_model_input).last_hidden_state[0].cpu().numpy()
+    fixed_attention = fixed_encoding["attention_mask"][0].numpy().astype(bool)
+    text_features[~fixed_attention] = 0
+
+    # 原始字符串中的可对齐词区间，用于把WordPiece重新指向强制对齐词。
+    raw_spans = [match.span() for match in re.finditer(r"\S+", text)]
+    aligned_spans = [span for span in raw_spans if clean_word(text[slice(*span)])]
+    if len(aligned_spans) != len(words):
+        raise RuntimeError("原始文本词区间与强制对齐词数量不一致")
+
     audio = np.zeros((MAX_LENGTH, audio_words.shape[1]), dtype=np.float32)
     vision = np.zeros((MAX_LENGTH, visual_words.shape[1]), dtype=np.float32)
     token_intervals = np.zeros((MAX_LENGTH, 2), dtype=np.float32)
     token_audio_mask = np.zeros(MAX_LENGTH, dtype=bool)
     token_visual_mask = np.zeros(MAX_LENGTH, dtype=bool)
     word_index_array = np.full(MAX_LENGTH, -1, dtype=np.int16)
-    for token_index, word_index in enumerate(word_ids[:MAX_LENGTH]):
+    for token_index, (token_start, token_end) in enumerate(offsets):
+        if token_start == token_end:
+            continue
+        word_index = next(
+            (
+                index
+                for index, (word_start, word_end) in enumerate(aligned_spans)
+                if token_start < word_end and token_end > word_start
+            ),
+            None,
+        )
         if word_index is None:
             continue
         audio[token_index] = audio_words[word_index]
@@ -283,13 +389,11 @@ def encode_text_and_align(
         token_visual_mask[token_index] = visual_mask[word_index]
         word_index_array[token_index] = word_index
 
-    input_ids = np.zeros(MAX_LENGTH, dtype=np.int64)
-    attention_mask = np.zeros(MAX_LENGTH, dtype=np.int64)
-    token_type_ids = np.zeros(MAX_LENGTH, dtype=np.int64)
-    input_ids[:copied_length] = encoding["input_ids"][0, :copied_length].numpy()
-    attention_mask[:copied_length] = encoding["attention_mask"][0, :copied_length].numpy()
-    if "token_type_ids" in encoding:
-        token_type_ids[:copied_length] = encoding["token_type_ids"][0, :copied_length].numpy()
+    input_ids = fixed_encoding["input_ids"][0].numpy()
+    attention_mask = fixed_encoding["attention_mask"][0].numpy()
+    token_type_ids = fixed_encoding.get(
+        "token_type_ids", torch.zeros_like(fixed_encoding["input_ids"])
+    )[0].numpy()
     text_bert = np.stack(
         [input_ids, attention_mask, token_type_ids]
     )
@@ -323,6 +427,11 @@ def main() -> None:
     parser.add_argument("--limit", type=int, default=None)
     parser.add_argument("--sample-id", action="append", default=[])
     parser.add_argument("--visual-fps", type=float, default=10.0)
+    parser.add_argument(
+        "--local-files-only",
+        action="store_true",
+        help="仅使用本机已缓存的BERT权重，离线复跑时启用",
+    )
     args = parser.parse_args()
 
     manifest = pd.read_csv(args.manifest)
@@ -343,8 +452,15 @@ def main() -> None:
     alignment_model = alignment_bundle.get_model(with_star=True).to(device).eval()
     alignment_tokenizer = alignment_bundle.get_tokenizer()
     aligner = alignment_bundle.get_aligner()
-    bert_tokenizer = AutoTokenizer.from_pretrained("bert-base-uncased", use_fast=True)
-    bert_model = AutoModel.from_pretrained("bert-base-uncased").to(device).eval()
+    bert_tokenizer = AutoTokenizer.from_pretrained(
+        "bert-base-uncased",
+        use_fast=True,
+        local_files_only=args.local_files_only,
+    )
+    bert_model = AutoModel.from_pretrained(
+        "bert-base-uncased",
+        local_files_only=args.local_files_only,
+    ).to(device).eval()
     smile = opensmile.Smile(
         feature_set=opensmile.FeatureSet.eGeMAPSv02,
         feature_level=opensmile.FeatureLevel.LowLevelDescriptors,
@@ -376,9 +492,12 @@ def main() -> None:
             audio_words, audio_word_mask, audio_names = extract_audio_words(
                 wav_path, intervals, smile
             )
-        vision_words, vision_word_mask, face_detection_ratio = extract_visual_words(
-            video_path, intervals, sample_fps=args.visual_fps
-        )
+        (
+            vision_words,
+            vision_word_mask,
+            face_detection_ratio,
+            face_crop_fallback_ratio,
+        ) = extract_visual_words(video_path, intervals, sample_fps=args.visual_fps)
         arrays = encode_text_and_align(
             str(row["text"]),
             words,
@@ -433,6 +552,7 @@ def main() -> None:
                 "audio_word_coverage": float(audio_word_mask.mean()),
                 "visual_word_coverage": float(vision_word_mask.mean()),
                 "face_frame_detection_ratio": face_detection_ratio,
+                "face_crop_fallback_ratio": face_crop_fallback_ratio,
                 "elapsed_s": time.perf_counter() - start_time,
                 "status": quality_status,
             }
@@ -447,7 +567,10 @@ def main() -> None:
         "text_model": "bert-base-uncased",
         "audio_feature_set": "openSMILE eGeMAPSv02 LowLevelDescriptors",
         "audio_dimension": len(audio_names),
-        "visual_feature_set": "MediaPipe FaceMesh 35 normalized geometric distances",
+        "visual_feature_set": (
+            "MediaPipe FaceMesh 35 normalized geometric distances; "
+            "Haar face-crop fallback for small/profile faces"
+        ),
         "visual_dimension": len(VISUAL_PAIRS),
         "max_token_length": MAX_LENGTH,
         "mean_alignment_score": float(
@@ -461,6 +584,9 @@ def main() -> None:
         ),
         "mean_face_frame_detection_ratio": float(
             np.mean([row["face_frame_detection_ratio"] for row in log_rows])
+        ),
+        "mean_face_crop_fallback_ratio": float(
+            np.mean([row["face_crop_fallback_ratio"] for row in log_rows])
         ),
         "quality_pass_count": sum(row["status"] == "pass" for row in log_rows),
         "quality_review_count": sum(row["status"] == "review" for row in log_rows),

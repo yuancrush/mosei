@@ -5,15 +5,16 @@
   "text_model": "bert-base-uncased",
   "audio_feature_set": "openSMILE eGeMAPSv02 LowLevelDescriptors",
   "audio_dimension": 25,
-  "visual_feature_set": "MediaPipe FaceMesh 35 normalized geometric distances",
+  "visual_feature_set": "MediaPipe FaceMesh 35 normalized geometric distances; Haar face-crop fallback for small/profile faces",
   "visual_dimension": 35,
   "max_token_length": 50,
   "mean_alignment_score": 0.7430126451328397,
   "mean_audio_word_coverage": 1.0,
-  "mean_visual_word_coverage": 0.7628845061587647,
-  "mean_face_frame_detection_ratio": 0.8125644212098004,
-  "quality_pass_count": 63,
-  "quality_review_count": 37,
+  "mean_visual_word_coverage": 0.841618609812819,
+  "mean_face_frame_detection_ratio": 0.8985153963487699,
+  "mean_face_crop_fallback_ratio": 0.08595097513896935,
+  "quality_pass_count": 66,
+  "quality_review_count": 34,
   "truncated_sample_count": 6,
-  "total_elapsed_s": 152.50702769999043
+  "total_elapsed_s": 214.33657320008206
 }

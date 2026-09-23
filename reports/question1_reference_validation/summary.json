@@ -1,0 +1,10 @@
+{
+  "overlap_count": 18,
+  "token_ids_exact_count": 18,
+  "attention_mask_exact_count": 18,
+  "token_type_ids_exact_count": 18,
+  "mean_text_feature_rmse": 6.684595853635578e-07,
+  "mean_audio_support_jaccard": 0.9965277777777778,
+  "mean_vision_support_jaccard": 0.8280942273882917,
+  "note": "音频/视觉提取器不同，Jaccard仅作时序支持诊断，不要求等于1。"
+}

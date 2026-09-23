@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+"""审计附件1的标签、视频、音视频流及其与附件2重合关系。"""
+
 import argparse
 import csv
 import json

@@ -38,15 +38,17 @@ python train_baselines.py --data "D:\你的数据目录\aligned_50.pkl" --models
    └─ 附件2-数据集特征文件/aligned_50.pkl
 ```
 
-第一问阶段1的命令为：
+第一问完整复现命令为：
 
 ```powershell
 python audit_attachment1.py
 python extract_question1_features.py --output-dir outputs/question1_features
 python analyze_question1_quality.py
+python validate_question1_reference.py
+python prepare_question1_submission.py
 ```
 
-完整过程、特征含义和质检阈值见 [`experiments/Q1-STAGE1_数据审计与最小对齐流水线.md`](experiments/Q1-STAGE1_数据审计与最小对齐流水线.md)。附件1生成的25维openSMILE音频与35维FaceMesh视觉特征不等同于附件2的74维COVAREP和35维FACET，不得直接混用已训权重。
+问题1已完整完成。题干拆解、模型公式、最终结果和写作材料见 [`reports/问题1完整求解与写作材料.md`](reports/问题1完整求解与写作材料.md)，合作者跨会话写作见 [`WRITING_HANDOFF.md`](WRITING_HANDOFF.md)。附件1生成的25维openSMILE音频与35维FaceMesh视觉特征不等同于附件2的74维COVAREP和35维FACET，不得直接混用已训权重。
 
 首次运行建议先确认审计通过：
 
@@ -113,7 +115,7 @@ pythonproject/
 
 ## 5. 当前阶段结论
 
-- 第一问阶段1已生成100条变长词级和50位置三模态特征；63条自动质检通过，37条待复核，尚不能宣称第一问最终完成。
+- 第一问已完整完成：100条均通过结构检查，66条高置信、34条质量预警；视觉回退后平均词覆盖率84.16%，18条重合样本的BERT接口全部一致。
 - 最小基线显示文本是主信号，直接三模态拼接未稳定超过文本。
 - EXP-001 显示时序编码有效；Text-BiGRU 仍是当前总体候选。
 - 附件3表现为文本完整、音频与视觉联合局部缺失；审计与压力测试见 `experiments/EXP-009_附件3缺失审计与压力测试.md`。
@@ -121,6 +123,6 @@ pythonproject/
 - 当前改进主要来自显式模态可用率，判别不确定性尚未充分校准；完整超图扩散暂不实施。
 - 当前最佳任务组合是 Text-BiGRU 分类 + Text+Audio-BiGRU 回归，验证集 Macro-F1/MAE/Pearson 为0.6351/0.5697/0.6693。
 - 三种子集成后当前最佳方案更新为：Text-BiGRU多数投票分类 + Text+Audio-BiGRU均值回归，验证集为0.6343/0.5648/0.6772。
-- 当前仍处于验证集迭代阶段，EXP-011 需要多随机种子复现，不能把单随机种子结果作为最终结论。
+- 第二至四问仍按验证集协议迭代，不能把单随机种子结果作为最终结论。
 
 历史基线报告见 [`reports/baseline_report.md`](reports/baseline_report.md)，第1天完整结论见 [`reports/第1天实验阶段总结.md`](reports/第1天实验阶段总结.md)。跨会话继续工作时，先阅读 [`NEXT_SESSION.md`](NEXT_SESSION.md)。

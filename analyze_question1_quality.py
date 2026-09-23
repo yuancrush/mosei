@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+"""校验第一问全部NPZ结构，统计质量预警并输出中文诊断图。"""
+
 import argparse
 import json
 from pathlib import Path
@@ -13,6 +15,8 @@ import pandas as pd
 
 
 PROJECT_ROOT = Path(__file__).resolve().parent
+plt.rcParams["font.sans-serif"] = ["Microsoft YaHei", "SimHei", "Arial"]
+plt.rcParams["axes.unicode_minus"] = False
 
 
 def validate_sample(path: Path) -> dict[str, bool]:
@@ -21,6 +25,8 @@ def validate_sample(path: Path) -> dict[str, bool]:
     token_word_index = data["token_word_index"]
     nonword = token_word_index < 0
     intervals = data["word_intervals"]
+    valid_token_count = int(data["text_bert"][1].sum())
+    padding = data["text_bert"][1] == 0
     return {
         "fixed_shapes_valid": (
             data["text"].shape == (50, 768)
@@ -45,6 +51,10 @@ def validate_sample(path: Path) -> dict[str, bool]:
         "nonword_av_zero": bool(
             np.all(data["audio"][nonword] == 0) and np.all(data["vision"][nonword] == 0)
         ),
+        "sep_position_valid": bool(
+            valid_token_count >= 2 and data["text_bert"][0, valid_token_count - 1] == 102
+        ),
+        "padding_text_zero": bool(np.all(data["text"][padding] == 0)),
     }
 
 
@@ -52,25 +62,28 @@ def plot_overview(log: pd.DataFrame, output_path: Path) -> None:
     fig, axes = plt.subplots(2, 2, figsize=(11, 8))
     axes[0, 0].hist(log["mean_alignment_score"], bins=np.linspace(0, 1, 21), color="#2563EB")
     axes[0, 0].axvline(0.6, color="#DC2626", linestyle="--")
-    axes[0, 0].set(title="Mean forced-alignment score", xlabel="Score", ylabel="Samples")
+    axes[0, 0].set(title="样本平均强制对齐置信度", xlabel="置信度", ylabel="样本数")
 
     axes[0, 1].hist(log["face_frame_detection_ratio"], bins=np.linspace(0, 1, 21), color="#0F766E")
     axes[0, 1].axvline(0.7, color="#DC2626", linestyle="--")
-    axes[0, 1].set(title="Face detection coverage", xlabel="Detected frame ratio", ylabel="Samples")
+    axes[0, 1].set(title="人脸帧检出覆盖率", xlabel="检出帧比例", ylabel="样本数")
 
     colors = log["status"].map({"pass": "#16A34A", "review": "#DC2626"})
     axes[1, 0].scatter(log["word_count"], log["mean_alignment_score"], c=colors, alpha=0.75)
-    axes[1, 0].set(title="Alignment by transcript length", xlabel="Words", ylabel="Mean score", ylim=(0, 1.02))
+    axes[1, 0].set(title="转写长度与对齐置信度", xlabel="词数", ylabel="平均置信度", ylim=(0, 1.02))
+    axes[1, 0].scatter([], [], color="#16A34A", label="高置信")
+    axes[1, 0].scatter([], [], color="#DC2626", label="质量预警")
+    axes[1, 0].legend(loc="lower right")
 
     cause_counts = {
-        "Alignment mean": int((log["mean_alignment_score"] < 0.6).sum()),
-        "Low-score words": int((log["low_alignment_word_ratio"] > 0.25).sum()),
-        "Face detection": int((log["face_frame_detection_ratio"] < 0.7).sum()),
-        "Visual coverage": int((log["visual_word_coverage"] < 0.7).sum()),
-        "50-token truncation": int((log["truncated_word_count"] > 0).sum()),
+        "平均对齐置信度偏低": int((log["mean_alignment_score"] < 0.6).sum()),
+        "低置信词比例偏高": int((log["low_alignment_word_ratio"] > 0.25).sum()),
+        "人脸检出率偏低": int((log["face_frame_detection_ratio"] < 0.7).sum()),
+        "视觉词覆盖率偏低": int((log["visual_word_coverage"] < 0.7).sum()),
+        "50位置兼容层截断": int((log["truncated_word_count"] > 0).sum()),
     }
     axes[1, 1].barh(list(cause_counts), list(cause_counts.values()), color="#F59E0B")
-    axes[1, 1].set(title="Review triggers (overlapping)", xlabel="Samples")
+    axes[1, 1].set(title="质量预警触发原因（可重叠）", xlabel="样本数")
     fig.tight_layout()
     fig.savefig(output_path, dpi=180)
     plt.close(fig)
@@ -91,9 +104,9 @@ def plot_alignment_examples(log: pd.DataFrame, sample_dir: Path, output_path: Pa
             axis.barh(index, interval[1] - interval[0], left=interval[0], color=plt.cm.RdYlGn(float(score)))
             axis.text(interval[0], index, str(word), va="center", fontsize=7)
         axis.set_yticks([])
-        axis.set_xlabel("Physical time (s)")
-        display_id = str(row["sample_id"]).replace("$", r"\$")
-        axis.set_title(f'{display_id} | mean score={row["mean_alignment_score"]:.3f}')
+        axis.set_xlabel("物理时间（秒）")
+        display_id = str(row["sample_id"]).replace("$_$", " / ")
+        axis.set_title(f'样本 {display_id} | 平均对齐置信度={row["mean_alignment_score"]:.3f}')
         axis.invert_yaxis()
     fig.tight_layout()
     fig.savefig(output_path, dpi=180)
@@ -143,6 +156,8 @@ def main() -> None:
         "all_values_finite": bool(validation["finite_values"].all()),
         "all_intervals_ordered": bool(validation["interval_order_valid"].all()),
         "all_nonword_av_zero": bool(validation["nonword_av_zero"].all()),
+        "all_sep_positions_valid": bool(validation["sep_position_valid"].all()),
+        "all_padding_text_zero": bool(validation["padding_text_zero"].all()),
         "output_npz_count": len(list(sample_dir.glob("*.npz"))),
         "output_size_bytes": sum(path.stat().st_size for path in sample_dir.glob("*.npz")),
     }

@@ -1,0 +1,15 @@
+{
+  "before": {
+    "mean_visual_word_coverage": 0.7628845061587647,
+    "mean_face_frame_detection_ratio": 0.8125644212098004,
+    "zero_face_detection_count": 12,
+    "quality_warning_count": 37
+  },
+  "after": {
+    "mean_visual_word_coverage": 0.841618609812819,
+    "mean_face_frame_detection_ratio": 0.8985153963487699,
+    "mean_face_crop_fallback_ratio": 0.08595097513896935,
+    "zero_face_detection_count": 4,
+    "quality_warning_count": 34
+  }
+}
