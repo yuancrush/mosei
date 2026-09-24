@@ -51,7 +51,7 @@ python validate_question1_reference.py
 python prepare_question1_submission.py
 ```
 
-问题1工程交付已冻结。100条均有完整特征，80条词级时间映射可用，20条经独立ASR复核后标为低可靠。题干拆解、模型公式、最终结果和写作材料见 [`reports/问题1完整求解与写作材料.md`](reports/问题1完整求解与写作材料.md)，合作者跨会话写作见 [`WRITING_HANDOFF.md`](WRITING_HANDOFF.md)。附件1生成的25维openSMILE音频与35维FaceMesh视觉特征不等同于附件2的74维COVAREP和35维FACET，不得直接混用已训权重。
+问题1工程产物已完成。100条均有完整特征；人工复核后采用更严格口径：78条自动高置信词级映射、2条仅部分匹配、20条不支持完整词级证据。前78条没有经过本轮逐条人工听辨，不能写成“人工确认”。题干拆解和基础材料见 [`reports/问题1完整求解与写作材料.md`](reports/问题1完整求解与写作材料.md)，写作人员必须先查看 [`reports/README.md`](reports/README.md) 中的增量交接顺序。附件1生成的25维openSMILE音频与35维FaceMesh视觉特征不等同于附件2的74维COVAREP和35维FACET，不得直接混用已训权重。
 
 首次运行建议先确认审计通过：
 
@@ -107,6 +107,8 @@ selection_score = Macro-F1 + Pearson - MAE / 3
 ```text
 pythonproject/
 ├─ experiments/                 # 中文实验记录、模板和索引
+├─ reports/README.md            # 写作材料权威入口与版本顺序
+├─ reports/writing_handoffs/    # 问题1/2/3按日期追加的写作纠偏
 ├─ reports/                     # 数据审计与阶段性结论
 ├─ outputs/<run_name>/          # 权重、指标、预测、曲线和 TensorBoard 日志
 ├─ src/mosei/                   # 数据、模型、指标与公共函数
@@ -118,7 +120,7 @@ pythonproject/
 
 ## 5. 当前阶段结论
 
-- 第一问已冻结：100条均通过结构检查，66条自动质检通过、34条触发质量预警；22条低MMS分样本独立复核后，最终80条时间映射可用、20条低可靠；完整50位置BERT特征与附件2的RMSE为6.22×10⁻⁷。
+- 第一问产物已完成：100条均通过结构检查，66条自动质检通过、34条触发质量预警；22条低MMS分样本经人工复核后，严格口径为78条高置信、2条部分匹配、20条不支持完整词级证据；完整50位置BERT特征与附件2的RMSE为6.22×10⁻⁷。
 - 最小基线显示文本是主信号，直接三模态拼接未稳定超过文本。
 - EXP-001 显示时序编码有效；Text-BiGRU 仍是当前总体候选。
 - 附件3表现为文本完整、音频与视觉联合局部缺失；审计与压力测试见 `experiments/EXP-009_附件3缺失审计与压力测试.md`。
@@ -127,6 +129,6 @@ pythonproject/
 - 当前最佳任务组合是 Text-BiGRU 分类 + Text+Audio-BiGRU 回归，验证集 Macro-F1/MAE/Pearson 为0.6351/0.5697/0.6693。
 - 三种子集成后当前最佳方案更新为：Text-BiGRU多数投票分类 + Text+Audio-BiGRU均值回归，验证集为0.6343/0.5648/0.6772。
 - 阶段B没有模型通过晋级门槛；50:50回归专家平均可达0.5616/0.6805，但只作为局部缺失阶段候选。更大BiGRU、Focal Loss和BERT顶部两层微调均已淘汰。
-- 第二至四问仍按验证集协议迭代，不能把单随机种子结果作为最终结论。
+- 第二至三问仍按验证集协议迭代，不能把单随机种子结果作为最终结论。
 
 历史基线报告见 [`reports/baseline_report.md`](reports/baseline_report.md)，第1天完整结论见 [`reports/第1天实验阶段总结.md`](reports/第1天实验阶段总结.md)。跨会话继续工作时，先阅读 [`NEXT_SESSION.md`](NEXT_SESSION.md)。
