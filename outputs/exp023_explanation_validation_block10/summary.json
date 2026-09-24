@@ -1,0 +1,36 @@
+{
+  "protocol": {
+    "split": "official_valid_only",
+    "sample_count": 728,
+    "block_size_positions": 10,
+    "top_k_blocks": 1,
+    "random_seed": 2026,
+    "attachment4_used_for_selection": false
+  },
+  "classification_fidelity": {
+    "top_deletion_probability_drop_mean": 0.16007225600245234,
+    "random_deletion_probability_drop_mean": 0.020565506050383653,
+    "top_minus_random_deletion": 0.1395067499520687,
+    "top_deletion_better_ratio": 0.8695054945054945,
+    "top_retained_probability_mean": 0.7737226741654533,
+    "random_retained_probability_mean": 0.43335899329427013,
+    "top_minus_random_retention": 0.3403636808711831
+  },
+  "regression_fidelity": {
+    "top_deletion_abs_change_mean": 0.26173910905944775,
+    "random_deletion_abs_change_mean": 0.1162291799250502,
+    "top_minus_random_deletion": 0.14550992913439753,
+    "top_deletion_better_ratio": 0.7912087912087912
+  },
+  "seed_stability": {
+    "classification_top1_pairwise_agreement": 0.801294191919192,
+    "regression_top1_pairwise_agreement": 0.6240530303030303
+  },
+  "mean_modality_ablation": {
+    "classification_text_ablation_delta": 0.3885991068986746,
+    "classification_audio_ablation_delta": 0.0044440793303342965,
+    "classification_vision_ablation_delta": 0.0028627058388767663,
+    "regression_text_ablation_signed_delta": 0.07747063425799403,
+    "regression_audio_ablation_signed_delta": -0.04221700912515459
+  }
+}

@@ -1,0 +1,66 @@
+{
+  "validation_sample_count": 728,
+  "selected_protocol": {
+    "classification_block_size": 5,
+    "classification_top_k": 2,
+    "regression_block_size": 10,
+    "regression_top_k": 1,
+    "reason": "分类兼顾局部精度与种子稳定性；回归采用更粗粒度以提高忠实性和稳定性。"
+  },
+  "classification_primary_modality_counts": {
+    "text": 726,
+    "vision": 2
+  },
+  "regression_primary_modality_counts": {
+    "text": 615,
+    "audio": 113
+  },
+  "modality_ablation_statistics": {
+    "classification_text": {
+      "signed_mean": 0.3885991068986746,
+      "absolute_mean": 0.3886755374106732,
+      "positive_ratio": 0.9986263736263736
+    },
+    "classification_audio": {
+      "signed_mean": 0.004444079330334278,
+      "absolute_mean": 0.008635953723729262,
+      "positive_ratio": 0.6881868131868132
+    },
+    "classification_vision": {
+      "signed_mean": 0.002862705838876761,
+      "absolute_mean": 0.008428234525106718,
+      "positive_ratio": 0.5412087912087912
+    },
+    "regression_text": {
+      "signed_mean": 0.07747063425799403,
+      "absolute_mean": 0.5846056923638661,
+      "positive_ratio": 0.5810439560439561
+    },
+    "regression_audio": {
+      "signed_mean": -0.04221700912515459,
+      "absolute_mean": 0.21577712064762447,
+      "positive_ratio": 0.41346153846153844
+    }
+  },
+  "classification_selected_metrics": {
+    "top_deletion_probability_drop_mean": 0.18757008394779084,
+    "random_deletion_probability_drop_mean": 0.014566280398067536,
+    "top_minus_random_deletion": 0.1730038035497233,
+    "top_deletion_better_ratio": 0.9601648351648352,
+    "top_retained_probability_mean": 0.8089080935159882,
+    "random_retained_probability_mean": 0.48947067099372643,
+    "top_minus_random_retention": 0.3194374225222618
+  },
+  "regression_selected_metrics": {
+    "top_deletion_abs_change_mean": 0.26173910905944775,
+    "random_deletion_abs_change_mean": 0.1162291799250502,
+    "top_minus_random_deletion": 0.14550992913439753,
+    "top_deletion_better_ratio": 0.7912087912087912
+  },
+  "selected_seed_stability": {
+    "classification": 0.7024147727272728,
+    "regression": 0.6240530303030303
+  },
+  "interpretation": "文本是分类主证据；音频和视觉是小幅反事实纠错来源。弱模态可以报告贡献大小与方向，但不得强行写成主要参考模态。",
+  "attachment4_used_for_method_selection": false
+}

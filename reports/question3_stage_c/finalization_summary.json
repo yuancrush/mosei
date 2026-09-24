@@ -1,0 +1,21 @@
+{
+  "prediction_rows": 20,
+  "local_evidence_rows": 99,
+  "visual_keyframe_rows": 18,
+  "classification_counts": {
+    "正向": 8,
+    "负向": 7,
+    "中性": 5
+  },
+  "classification_regression_conflict_samples": [
+    "19"
+  ],
+  "special_restriction_samples": [
+    "07",
+    "13",
+    "15",
+    "18"
+  ],
+  "ground_truth_available": false,
+  "warning": "附件4无标签；本表是冻结模型推理，不能据此报告准确率或回灌训练。"
+}

@@ -1,0 +1,39 @@
+{
+  "sample_count": 20,
+  "ground_truth_available": false,
+  "attachment4_used_for_method_selection": false,
+  "classification_method": "3-seed tri-modal output-residual majority vote",
+  "classification_scales": {
+    "audio": 0.25,
+    "vision": 0.25
+  },
+  "regression_method": "3-seed Text+Audio mean",
+  "classification_counts": {
+    "负向": 7,
+    "中性": 5,
+    "正向": 8
+  },
+  "classification_primary_modality_counts": {
+    "text": 20,
+    "audio": 0,
+    "vision": 0
+  },
+  "regression_primary_modality_counts": {
+    "text": 20,
+    "audio": 0
+  },
+  "mean_vote_agreement": 0.9333333333333333,
+  "unanimous_classification_count": 16,
+  "mean_regression_seed_std": 0.13215310871601105,
+  "classification_regression_polarity_conflict_samples": [
+    "19"
+  ],
+  "mean_classification_evidence_seed_agreement": 0.7999999999999999,
+  "mean_regression_evidence_seed_agreement": 0.7666666666666666,
+  "keyframe_count": 18,
+  "special_handling": {
+    "15": "不输出逐词精确时间",
+    "13": "不输出正式模型视觉贡献关键帧",
+    "07_18": "只解释进入50-token接口的范围"
+  }
+}
