@@ -1,0 +1,176 @@
+{
+  "data_directories": {
+    "aligned": "D:\\Desktop\\资料\\02研究生\\数学建模\\第二十三届中国研究生数学建模竞赛 - 中文题目\\中文题目\\E题\\E题数据\\E题数据\\附件4-可解释专项视频样本与特征文件\\附件4-可解释专项视频样本与特征文件\\对齐版本",
+    "unaligned": "D:\\Desktop\\资料\\02研究生\\数学建模\\第二十三届中国研究生数学建模竞赛 - 中文题目\\中文题目\\E题\\E题数据\\E题数据\\附件4-可解释专项视频样本与特征文件\\附件4-可解释专项视频样本与特征文件\\未对齐版本"
+  },
+  "file_counts": {
+    "aligned_pickle": 20,
+    "unaligned_pickle": 20,
+    "paired_samples": 20,
+    "aligned_video": 20,
+    "unaligned_video": 20
+  },
+  "paired_name_sets_equal": true,
+  "paired_videos_byte_identical": 20,
+  "video_duration_seconds": {
+    "min": 3.6,
+    "mean": 12.459999999999997,
+    "median": 11.0666665,
+    "max": 24.1
+  },
+  "schemas_first_sample": {
+    "aligned": {
+      "raw_text": {
+        "kind": "text",
+        "preview": "Replacing these wear components when replacing the timing belt is essential to ensuring the new belt performs to its mil"
+      },
+      "audio": {
+        "kind": "array",
+        "shape": [
+          50,
+          74
+        ],
+        "dtype": "float64",
+        "finite": true,
+        "zero_ratio": 0.6078378378378378
+      },
+      "vision": {
+        "kind": "array",
+        "shape": [
+          50,
+          35
+        ],
+        "dtype": "float64",
+        "finite": true,
+        "zero_ratio": 0.56
+      },
+      "id": {
+        "kind": "text",
+        "preview": "01"
+      },
+      "text": {
+        "kind": "array",
+        "shape": [
+          50,
+          768
+        ],
+        "dtype": "float32",
+        "finite": true,
+        "zero_ratio": 0.0
+      },
+      "text_bert": {
+        "kind": "array",
+        "shape": [
+          3,
+          50
+        ],
+        "dtype": "int64",
+        "finite": true,
+        "zero_ratio": 0.68
+      }
+    },
+    "unaligned": {
+      "raw_text": {
+        "kind": "text",
+        "preview": "Replacing these wear components when replacing the timing belt is essential to ensuring the new belt performs to its mil"
+      },
+      "audio": {
+        "kind": "array",
+        "shape": [
+          500,
+          74
+        ],
+        "dtype": "float64",
+        "finite": true,
+        "zero_ratio": 0.6841081081081081
+      },
+      "vision": {
+        "kind": "array",
+        "shape": [
+          500,
+          35
+        ],
+        "dtype": "float64",
+        "finite": true,
+        "zero_ratio": 0.73
+      },
+      "id": {
+        "kind": "text",
+        "preview": "01"
+      },
+      "text": {
+        "kind": "array",
+        "shape": [
+          50,
+          768
+        ],
+        "dtype": "float32",
+        "finite": true,
+        "zero_ratio": 0.0
+      },
+      "text_bert": {
+        "kind": "array",
+        "shape": [
+          3,
+          50
+        ],
+        "dtype": "int64",
+        "finite": true,
+        "zero_ratio": 0.68
+      },
+      "audio_lengths": {
+        "kind": "array",
+        "shape": [],
+        "dtype": "int32",
+        "finite": true,
+        "zero_ratio": 0.0
+      },
+      "vision_lengths": {
+        "kind": "array",
+        "shape": [],
+        "dtype": "int32",
+        "finite": true,
+        "zero_ratio": 0.0
+      }
+    }
+  },
+  "shared_field_equal_counts": {
+    "id": 20,
+    "raw_text": 20,
+    "text": 20,
+    "text_bert": 20
+  },
+  "effective_length": {
+    "aligned_text_effective_length": {
+      "min": 13,
+      "median": 30.0,
+      "max": 50
+    },
+    "aligned_audio_effective_length": {
+      "min": 12,
+      "median": 29.0,
+      "max": 49
+    },
+    "aligned_vision_effective_length": {
+      "min": 0,
+      "median": 26.0,
+      "max": 49
+    },
+    "unaligned_audio_effective_length": {
+      "min": 60,
+      "median": 176.0,
+      "max": 425
+    },
+    "unaligned_vision_effective_length": {
+      "min": 18,
+      "median": 129.0,
+      "max": 319
+    }
+  },
+  "time_mapping_status": {
+    "physical_video_timeline": "established_from_frame_count_and_fps",
+    "feature_positions": "see outputs/question3_stage_a_timeline",
+    "warning": "音轨时长可能短于视频流时长，禁止按视频总时长线性拉伸特征位置；必须使用align_attachment4_timeline.py生成的强制对齐/固定帧率映射。"
+  },
+  "contains_labels": false
+}

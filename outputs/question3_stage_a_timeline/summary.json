@@ -1,0 +1,31 @@
+{
+  "sample_count": 20,
+  "device": "cuda",
+  "alignment_model": "torchaudio.pipelines.MMS_FA",
+  "bert_tokenizer": "bert-base-uncased",
+  "bert_interface_exact_match_count": 20,
+  "total_word_count": 479,
+  "mapped_word_count_within_50": 457,
+  "truncated_sample_count": 2,
+  "truncated_word_count": 22,
+  "mean_of_sample_alignment_scores": 0.8497559499999999,
+  "samples_mean_score_below_0_6": [
+    "15"
+  ],
+  "low_confidence_word_count": 46,
+  "unaligned_feature_time_mapping": {
+    "audio_feature_rate_hz": 20.0,
+    "vision_feature_rate_hz": 15.0,
+    "audio_observed_length_rate_median": 19.95093,
+    "vision_observed_length_rate_median_excluding_length_1": 15.0115625,
+    "time_origin": "视频/音轨起点0秒",
+    "vision_length_metadata_inconsistent_samples": [
+      "13",
+      "16"
+    ],
+    "warning": "第13、16条vision_lengths=1但后续存在非零帧，已按最后非零位置修正有效范围；其中13号对齐版视觉仍为全零，不能声称视觉影响了正式对齐模型。"
+  },
+  "time_mapping_definition": "每个有效BERT WordPiece通过原文字符区间指向一个官方文本词，再使用MMS强制对齐得到该词在原视频音轨中的[start,end)秒区间；[CLS]/[SEP]/padding不分配伪时间。",
+  "writing_constraint": "低置信度词需保留alignment_score；50-token截断之外的词不能由对齐版模型定位，但完整word_intervals仍保留供原始证据展示。",
+  "contains_labels": false
+}

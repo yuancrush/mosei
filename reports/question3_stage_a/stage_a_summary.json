@@ -1,0 +1,38 @@
+{
+  "sample_count": 20,
+  "bert_interface_exact_match_count": 20,
+  "text_word_time_reliability_counts": {
+    "高": 15,
+    "中": 4,
+    "不可作逐词精确定位": 1
+  },
+  "model_visual_contribution_unusable_samples": [
+    "13"
+  ],
+  "vision_length_metadata_inconsistent_samples": [
+    "13",
+    "16"
+  ],
+  "model_text_truncated_samples": [
+    "07",
+    "18"
+  ],
+  "word_time_unusable_samples": [
+    "15"
+  ],
+  "video_audio_duration_gap_over_0_1s_count": 16,
+  "maximum_video_audio_duration_gap_seconds": 7.890124999999999,
+  "row_counts": {
+    "word_intervals": 479,
+    "token_time_map": 1000,
+    "unaligned_feature_time_map": 6330
+  },
+  "validation_checks": {
+    "sample_count_is_20": true,
+    "each_sample_has_50_token_rows": true,
+    "word_intervals_ordered": true,
+    "word_intervals_within_audio": true,
+    "unaligned_feature_intervals_within_audio": true
+  },
+  "stage_a_conclusion": "20条均建立物理时间索引；15号逐词时间证据降级，13号正式模型视觉证据禁用，13/16号视觉长度元数据已纠错，07/18号明确50-token模型解释边界。"
+}

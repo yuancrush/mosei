@@ -51,6 +51,17 @@ python validate_question1_reference.py
 python prepare_question1_submission.py
 ```
 
+问题3阶段A的附件4审计与时间轴复现命令为：
+
+```powershell
+python audit_attachment4.py
+python align_attachment4_timeline.py
+python review_attachment4_alignment.py
+python summarize_question3_stage_a.py
+```
+
+阶段A已发现必须在解释阶段单独降级的样本：15号禁用逐词精确秒数，13号不能声称视觉影响正式模型，07/18号只解释进入50-token接口的文本范围。完整策略见[`reports/第3问阶段A_数据审计与时间轴映射.md`](reports/第3问阶段A_数据审计与时间轴映射.md)。
+
 问题1工程产物已完成。100条均有完整特征；人工复核后采用更严格口径：78条自动高置信词级映射、2条仅部分匹配、20条不支持完整词级证据。前78条没有经过本轮逐条人工听辨，不能写成“人工确认”。题干拆解和基础材料见 [`reports/问题1完整求解与写作材料.md`](reports/问题1完整求解与写作材料.md)，写作人员必须先查看 [`reports/README.md`](reports/README.md) 中的增量交接顺序。附件1生成的25维openSMILE音频与35维FaceMesh视觉特征不等同于附件2的74维COVAREP和35维FACET，不得直接混用已训权重。
 
 首次运行建议先确认审计通过：
@@ -130,6 +141,6 @@ pythonproject/
 - 三种子集成后当前最佳方案更新为：Text-BiGRU多数投票分类 + Text+Audio-BiGRU均值回归，验证集为0.6343/0.5648/0.6772。
 - 阶段B没有模型通过晋级门槛；50:50回归专家平均可达0.5616/0.6805，但只作为局部缺失阶段候选。更大BiGRU、Focal Loss和BERT顶部两层微调均已淘汰。
 - 阶段C的三模态输出残差分类模型在三个随机种子上均超过各自文本锚点；验证集将音频、视觉残差均缩放至0.25后，三种子多数投票达到Accuracy 0.6525、Macro-F1 0.6458。与原Text+Audio回归集成组合后，MAE/Pearson保持0.5648/0.6772，当前综合分数为1.1347。
-- 第二至三问仍按验证集协议迭代，不能把单随机种子结果作为最终结论。
+- 问题2已经冻结；问题3仍按验证集协议完成解释方法与忠实性验证，不能根据附件4无标签样本挑选解释算法或阈值。
 
 历史基线报告见 [`reports/baseline_report.md`](reports/baseline_report.md)，第1天完整结论见 [`reports/第1天实验阶段总结.md`](reports/第1天实验阶段总结.md)。跨会话继续工作时，先阅读 [`NEXT_SESSION.md`](NEXT_SESSION.md)。

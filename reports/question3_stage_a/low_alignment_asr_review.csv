@@ -1,0 +1,2 @@
+﻿sample,mms_mean_alignment_score,official_text,whisper_text,wer,word_time_mapping_usable,review_conclusion,handling
+15,0.416414,"However, despite their poverty, the family prioritize education because they believed in its power to transform lives","Her father, the breadwinner, died when she was barely a year old, putting the family in a dire financial position. However, despite their poverty,",1.3529411764705883,False,独立ASR与官方文本差异较大，不输出逐词精确解释,官方文本仍保留；仅降低证据时间定位等级，不用于调参

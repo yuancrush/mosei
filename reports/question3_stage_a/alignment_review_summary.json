@@ -1,0 +1,14 @@
+{
+  "threshold": 0.6,
+  "reviewed_count": 1,
+  "samples": [
+    "15"
+  ],
+  "asr_model": "openai/whisper-base.en",
+  "mean_wer": 1.3529411764705883,
+  "word_time_mapping_usable_count": 0,
+  "unusable_samples": [
+    "15"
+  ],
+  "constraint": "Whisper仅作独立质量复核，不替换官方文本、不产生情感伪标签。"
+}
