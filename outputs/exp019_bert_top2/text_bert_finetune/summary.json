@@ -1,0 +1,20 @@
+{
+  "model": "text_bert_finetune",
+  "modalities": [
+    "text"
+  ],
+  "parameters": 14276997,
+  "best_epoch": 3,
+  "elapsed_seconds": 30251.650013899998,
+  "valid": {
+    "loss": 1.259523711361728,
+    "classification_loss": 0.8738157591976963,
+    "regression_loss": 0.3857079565852553,
+    "accuracy": 0.6387362637362637,
+    "macro_f1": 0.6235140361013728,
+    "weighted_f1": 0.6405967729655446,
+    "mae": 0.5867122411727905,
+    "pearson": 0.6715865512779828,
+    "selection_score": 1.0995298403217586
+  }
+}

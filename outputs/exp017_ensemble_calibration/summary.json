@@ -1,0 +1,24 @@
+{
+  "protocol": "仅使用官方valid；附件3/4未参与选择",
+  "text_checkpoints": [
+    "outputs\\exp001_text_bigru\\text_bigru\\best.pt",
+    "outputs\\exp005_seed2027\\text_bigru\\best.pt",
+    "outputs\\exp005_seed2028\\text_bigru\\best.pt"
+  ],
+  "text_audio_checkpoints": [
+    "outputs\\exp014_text_audio_seed2026\\text_audio_bigru\\best.pt",
+    "outputs\\exp014_text_audio_seed2027\\text_audio_bigru\\best.pt",
+    "outputs\\exp014_text_audio_seed2028\\text_audio_bigru\\best.pt"
+  ],
+  "candidate_count": 15,
+  "best": {
+    "classification_strategy": "硬投票",
+    "regression_strategy": "文本权重0.50_文本音频权重0.50",
+    "accuracy": 0.6387362637362637,
+    "macro_f1": 0.6343476988305133,
+    "weighted_f1": 0.64582959827957,
+    "mae": 0.5615619421005249,
+    "pearson": 0.6805235404193439,
+    "selection_score": 1.127683925216349
+  }
+}

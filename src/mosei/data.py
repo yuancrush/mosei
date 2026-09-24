@@ -101,6 +101,12 @@ class AlignedMoseiDataset(Dataset):
     def __getitem__(self, index: int) -> Dict[str, object]:
         item: Dict[str, object] = {
             "id": self.ids[index],
+            "text_input_ids": torch.as_tensor(
+                np.asarray(self.split["text_bert"][index][0]), dtype=torch.long
+            ),
+            "text_token_type_ids": torch.as_tensor(
+                np.asarray(self.split["text_bert"][index][2]), dtype=torch.long
+            ),
             "classification_label": torch.tensor(
                 int(self.split["classification_labels"][index]), dtype=torch.long
             ),

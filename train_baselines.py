@@ -45,6 +45,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--hidden-dim", type=int, default=128)
     parser.add_argument("--dropout", type=float, default=0.3)
     parser.add_argument("--learning-rate", type=float, default=1e-3)
+    parser.add_argument(
+        "--bert-learning-rate",
+        type=float,
+        default=2e-5,
+        help="Learning rate for unfrozen BERT layers in text_bert_finetune",
+    )
     parser.add_argument("--weight-decay", type=float, default=1e-4)
     parser.add_argument("--regression-weight", type=float, default=1.0)
     parser.add_argument(
@@ -72,6 +78,17 @@ def parse_args() -> argparse.Namespace:
         default=1.0,
         help="0 disables class reweighting, 0.5 uses sqrt inverse frequency",
     )
+    parser.add_argument(
+        "--classification-loss",
+        choices=("cross_entropy", "focal"),
+        default="cross_entropy",
+    )
+    parser.add_argument(
+        "--focal-gamma",
+        type=float,
+        default=1.5,
+        help="Gamma for weighted focal loss; used only with --classification-loss focal",
+    )
     parser.add_argument("--seed", type=int, default=2026)
     parser.add_argument("--num-workers", type=int, default=0)
     parser.add_argument("--device", default="auto")
@@ -92,6 +109,30 @@ def resolve_device(requested: str) -> torch.device:
     if requested == "auto":
         return torch.device("cuda" if torch.cuda.is_available() else "cpu")
     return torch.device(requested)
+
+
+class WeightedFocalLoss(nn.Module):
+    """多分类Focal Loss；保留原有逆频率类别权重。"""
+
+    def __init__(self, weight: torch.Tensor, gamma: float = 1.5) -> None:
+        super().__init__()
+        if gamma < 0:
+            raise ValueError("focal gamma must be non-negative")
+        self.register_buffer("weight", weight)
+        self.gamma = gamma
+
+    def forward(self, logits: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
+        log_probabilities = torch.nn.functional.log_softmax(logits, dim=-1)
+        probabilities = log_probabilities.exp()
+        indices = torch.arange(target.shape[0], device=target.device)
+        target_log_probability = log_probabilities[indices, target]
+        target_probability = probabilities[indices, target]
+        sample_weight = self.weight[target]
+        return (
+            -sample_weight
+            * (1.0 - target_probability).pow(self.gamma)
+            * target_log_probability
+        ).mean()
 
 
 def batch_losses(
@@ -326,14 +367,35 @@ def train_model(
     ).to(device)
     model.auxiliary_weight = args.auxiliary_weight
     class_weights = module.class_weights(args.class_weight_power).to(device)
-    classification_loss = nn.CrossEntropyLoss(weight=class_weights)
+    classification_loss = (
+        WeightedFocalLoss(class_weights, gamma=args.focal_gamma)
+        if args.classification_loss == "focal"
+        else nn.CrossEntropyLoss(weight=class_weights)
+    )
     if args.regression_loss == "mse":
         regression_loss = nn.MSELoss()
     else:
         regression_loss = nn.SmoothL1Loss(beta=0.5)
-    optimizer = AdamW(
-        model.parameters(), lr=args.learning_rate, weight_decay=args.weight_decay
-    )
+    if model_name == "text_bert_finetune":
+        bert_parameters = [
+            parameter for parameter in model.bert.parameters() if parameter.requires_grad
+        ]
+        task_parameters = [
+            parameter
+            for name, parameter in model.named_parameters()
+            if parameter.requires_grad and not name.startswith("bert.")
+        ]
+        optimizer = AdamW(
+            [
+                {"params": bert_parameters, "lr": args.bert_learning_rate},
+                {"params": task_parameters, "lr": args.learning_rate},
+            ],
+            weight_decay=args.weight_decay,
+        )
+    else:
+        optimizer = AdamW(
+            model.parameters(), lr=args.learning_rate, weight_decay=args.weight_decay
+        )
     scheduler = ReduceLROnPlateau(
         optimizer, mode="max", factor=0.5, patience=3, min_lr=1e-6
     )
@@ -396,9 +458,18 @@ def train_model(
             best_score = row["selection_score"]
             best_epoch = epoch
             stale_epochs = 0
+            trainable_names = {
+                name for name, parameter in model.named_parameters() if parameter.requires_grad
+            }
+            checkpoint_state = {
+                name: value.detach().cpu()
+                for name, value in model.state_dict().items()
+                if name in trainable_names
+            }
             torch.save(
                 {
-                    "model_state": model.state_dict(),
+                    "model_state": checkpoint_state,
+                    "partial_state": len(checkpoint_state) < len(model.state_dict()),
                     "model_name": model_name,
                     "hidden_dim": args.hidden_dim,
                     "dropout": args.dropout,
@@ -414,7 +485,9 @@ def train_model(
             break
 
     checkpoint = torch.load(model_dir / "best.pt", map_location=device, weights_only=False)
-    model.load_state_dict(checkpoint["model_state"])
+    model.load_state_dict(
+        checkpoint["model_state"], strict=not checkpoint.get("partial_state", False)
+    )
     valid_metrics = evaluate(
         model,
         module.loader("valid", shuffle=False),

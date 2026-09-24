@@ -23,6 +23,7 @@ EXPERIMENT_MODALITIES = {
     "fusion_bigru": ("text", "audio", "vision"),
     "fusion_gated_bigru": ("text", "audio", "vision"),
     "fusion_uncertainty_bigru": ("text", "audio", "vision"),
+    "text_bert_finetune": ("text",),
 }
 
 
@@ -315,11 +316,60 @@ class MultiTaskTemporal(nn.Module):
         return self.modalities
 
 
+class BertTopLayerMultiTask(nn.Module):
+    """只微调通用BERT顶部两层的文本多任务模型。"""
+
+    def __init__(self, hidden_dim: int = 128, dropout: float = 0.3) -> None:
+        super().__init__()
+        from transformers import AutoModel
+
+        self.model_name = "text_bert_finetune"
+        self.modalities = ("text",)
+        self.bert = AutoModel.from_pretrained(
+            "bert-base-uncased", local_files_only=True
+        )
+        for parameter in self.bert.parameters():
+            parameter.requires_grad = False
+        for layer in self.bert.encoder.layer[-2:]:
+            for parameter in layer.parameters():
+                parameter.requires_grad = True
+        self.pool = AttentivePool(self.bert.config.hidden_size)
+        self.shared = nn.Sequential(
+            nn.LayerNorm(self.bert.config.hidden_size),
+            nn.Linear(self.bert.config.hidden_size, hidden_dim),
+            nn.GELU(),
+            nn.Dropout(dropout),
+        )
+        self.classifier = nn.Linear(hidden_dim, 3)
+        self.regressor = nn.Linear(hidden_dim, 1)
+
+    def forward(self, batch: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
+        encoded = self.bert(
+            input_ids=batch["text_input_ids"],
+            attention_mask=batch["text_mask"].to(torch.long),
+            token_type_ids=batch["text_token_type_ids"],
+        ).last_hidden_state
+        shared = self.shared(self.pool(encoded, batch["text_mask"]))
+        return {
+            "classification_logits": self.classifier(shared),
+            "regression": self.regressor(shared).squeeze(-1),
+        }
+
+    def trainable_parameter_count(self) -> int:
+        return sum(parameter.numel() for parameter in self.parameters() if parameter.requires_grad)
+
+    @property
+    def input_modalities(self) -> Iterable[str]:
+        return self.modalities
+
+
 def build_model(
     model_name: str,
     hidden_dim: int = 128,
     dropout: float = 0.3,
 ) -> nn.Module:
+    if model_name == "text_bert_finetune":
+        return BertTopLayerMultiTask(hidden_dim=hidden_dim, dropout=dropout)
     if model_name in MODEL_MODALITIES:
         return MultiTaskBaseline(model_name, hidden_dim=hidden_dim, dropout=dropout)
     return MultiTaskTemporal(model_name, hidden_dim=hidden_dim, dropout=dropout)

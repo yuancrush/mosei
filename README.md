@@ -126,6 +126,7 @@ pythonproject/
 - 当前改进主要来自显式模态可用率，判别不确定性尚未充分校准；完整超图扩散暂不实施。
 - 当前最佳任务组合是 Text-BiGRU 分类 + Text+Audio-BiGRU 回归，验证集 Macro-F1/MAE/Pearson 为0.6351/0.5697/0.6693。
 - 三种子集成后当前最佳方案更新为：Text-BiGRU多数投票分类 + Text+Audio-BiGRU均值回归，验证集为0.6343/0.5648/0.6772。
+- 阶段B没有模型通过晋级门槛；50:50回归专家平均可达0.5616/0.6805，但只作为局部缺失阶段候选。更大BiGRU、Focal Loss和BERT顶部两层微调均已淘汰。
 - 第二至四问仍按验证集协议迭代，不能把单随机种子结果作为最终结论。
 
 历史基线报告见 [`reports/baseline_report.md`](reports/baseline_report.md)，第1天完整结论见 [`reports/第1天实验阶段总结.md`](reports/第1天实验阶段总结.md)。跨会话继续工作时，先阅读 [`NEXT_SESSION.md`](NEXT_SESSION.md)。
