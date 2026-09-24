@@ -1,0 +1,24 @@
+[
+  {
+    "model": "fusion_task_gated_bigru",
+    "modalities": [
+      "text",
+      "audio",
+      "vision"
+    ],
+    "parameters": 458221,
+    "best_epoch": 2,
+    "elapsed_seconds": 96.83085679999203,
+    "valid": {
+      "loss": 1.4309315668357598,
+      "classification_loss": 0.9523054243444087,
+      "regression_loss": 0.39228895470336245,
+      "accuracy": 0.6332417582417582,
+      "macro_f1": 0.6281017353660397,
+      "weighted_f1": 0.6419417346922152,
+      "mae": 0.5896193385124207,
+      "pearson": 0.6680732537998324,
+      "selection_score": 1.099635209661732
+    }
+  }
+]

@@ -1,0 +1,2 @@
+﻿model,modalities,parameters,best_epoch,elapsed_seconds,split,loss,accuracy,macro_f1,weighted_f1,mae,pearson,selection_score
+fusion_task_gated_bigru,text+audio+vision,458221,1,77.946,valid,1.319455461187677,0.6332417582417582,0.6228224355973095,0.6389793766373932,0.5875568389892578,0.6678148705112221,1.0947850264454457

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import argparse
 import csv
 import json
 import pickle
@@ -29,8 +30,31 @@ TEXT_AUDIO_CHECKPOINTS = [
     PROJECT_ROOT / "outputs" / f"exp014_text_audio_seed{seed}" / "text_audio_bigru" / "best.pt"
     for seed in (2026, 2027, 2028)
 ]
+OUTPUT_RESIDUAL_CHECKPOINTS = [
+    PROJECT_ROOT
+    / "outputs"
+    / run_name
+    / "fusion_output_residual_bigru"
+    / "best.pt"
+    for run_name in (
+        "exp020c_output_residual",
+        "exp020c_output_residual_seed2027",
+        "exp020c_output_residual_seed2028",
+    )
+]
 OUTPUT_DIR = PROJECT_ROOT / "outputs" / "exp016_attachment3_predictions"
 CLASS_NAMES = {0: "负向", 1: "中性", 2: "正向"}
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="对附件3执行冻结模型推理")
+    parser.add_argument(
+        "--classification-preset",
+        choices=("text", "output_residual"),
+        default="text",
+    )
+    parser.add_argument("--output-dir", type=Path, default=OUTPUT_DIR)
+    return parser.parse_args()
 
 
 def load_trusted_pickle(path: Path):
@@ -72,6 +96,7 @@ def build_batch(features: dict, module: MoseiDataModule, device: torch.device) -
 
 @torch.inference_mode()
 def main() -> None:
+    args = parse_args()
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     if not FEATURE_PATH.exists():
         raise FileNotFoundError("请先运行 prepare_attachment3.py 生成本地特征缓存")
@@ -81,8 +106,17 @@ def main() -> None:
 
     class_predictions = []
     class_probabilities = []
-    for path in TEXT_CHECKPOINTS:
-        output = load_model(path, device)(batch)
+    classification_paths = (
+        OUTPUT_RESIDUAL_CHECKPOINTS
+        if args.classification_preset == "output_residual"
+        else TEXT_CHECKPOINTS
+    )
+    for path in classification_paths:
+        model = load_model(path, device)
+        if args.classification_preset == "output_residual":
+            model.fusion.audio_scale = 0.25
+            model.fusion.vision_scale = 0.25
+        output = model(batch)
         probabilities = torch.softmax(output["classification_logits"], dim=-1).cpu().numpy()
         class_probabilities.append(probabilities)
         class_predictions.append(np.argmax(probabilities, axis=-1))
@@ -118,8 +152,8 @@ def main() -> None:
             }
         )
 
-    OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
-    with (OUTPUT_DIR / "predictions.csv").open("w", encoding="utf-8-sig", newline="") as handle:
+    args.output_dir.mkdir(parents=True, exist_ok=True)
+    with (args.output_dir / "predictions.csv").open("w", encoding="utf-8-sig", newline="") as handle:
         writer = csv.DictWriter(handle, fieldnames=list(rows[0]))
         writer.writeheader()
         writer.writerows(rows)
@@ -127,7 +161,17 @@ def main() -> None:
         "sample_count": len(rows),
         "ground_truth_available": False,
         "use_as_training_pseudo_labels": False,
-        "classification_method": "3-seed Text-BiGRU majority vote",
+        "classification_method": (
+            "3-seed tri-modal output-residual BiGRU majority vote"
+            if args.classification_preset == "output_residual"
+            else "3-seed Text-BiGRU majority vote"
+        ),
+        "classification_audio_scale": (
+            0.25 if args.classification_preset == "output_residual" else None
+        ),
+        "classification_vision_scale": (
+            0.25 if args.classification_preset == "output_residual" else None
+        ),
         "regression_method": "3-seed Text+Audio-BiGRU arithmetic mean",
         "class_mapping": CLASS_NAMES,
         "classification_counts": {
@@ -140,7 +184,7 @@ def main() -> None:
         "mean_audio_coverage": float(np.mean(audio_coverage)),
         "mean_vision_coverage": float(np.mean(vision_coverage)),
     }
-    with (OUTPUT_DIR / "metadata.json").open("w", encoding="utf-8") as handle:
+    with (args.output_dir / "metadata.json").open("w", encoding="utf-8") as handle:
         json.dump(metadata, handle, ensure_ascii=False, indent=2)
     print(json.dumps(metadata, ensure_ascii=False, indent=2))
 

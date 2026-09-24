@@ -56,12 +56,22 @@ def scenarios() -> List[dict]:
                         "location": location,
                     }
                 )
+        result.append(
+            {
+                "scenario": f"{name}_all",
+                "modalities": modalities,
+                "ratio": 1.0,
+                "location": "all",
+            }
+        )
     return result
 
 
 def block_bounds(length: int, ratio: float, location: str) -> tuple[int, int]:
     width = max(1, min(length, math.ceil(length * ratio)))
-    if location == "front":
+    if location == "all":
+        start = 0
+    elif location == "front":
         start = 0
     elif location == "back":
         start = length - width

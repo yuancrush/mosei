@@ -1,0 +1,14 @@
+{
+  "classification": "fusion_output_residual_bigru_majority_3seed",
+  "audio_scale": 0.25,
+  "vision_scale": 0.25,
+  "regression": "text_audio_regression_mean_3seed",
+  "accuracy": 0.6524725274725275,
+  "macro_f1": 0.6457753521577895,
+  "weighted_f1": 0.6592315712648599,
+  "mae": 0.5647514482289331,
+  "pearson": 0.6771826428545406,
+  "selection_score": 1.1347075122693524,
+  "mean_vote_agreement": 0.9377289377289377,
+  "unanimous_ratio": 0.8173076923076923
+}

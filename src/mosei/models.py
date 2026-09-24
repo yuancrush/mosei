@@ -4,6 +4,7 @@ from typing import Dict, Iterable
 
 import torch
 from torch import nn
+from torch.nn import functional as F
 
 
 INPUT_DIMS = {"text": 768, "audio": 74, "vision": 35}
@@ -23,6 +24,8 @@ EXPERIMENT_MODALITIES = {
     "fusion_bigru": ("text", "audio", "vision"),
     "fusion_gated_bigru": ("text", "audio", "vision"),
     "fusion_uncertainty_bigru": ("text", "audio", "vision"),
+    "fusion_task_gated_bigru": ("text", "audio", "vision"),
+    "fusion_output_residual_bigru": ("text", "audio", "vision"),
     "text_bert_finetune": ("text",),
 }
 
@@ -242,6 +245,190 @@ class UncertaintyAwareFusion(nn.Module):
         )
 
 
+class TaskSpecificTrustedFusion(nn.Module):
+    """文本锚定的分类/回归解耦可信残差融合。"""
+
+    def __init__(self, hidden_dim: int) -> None:
+        super().__init__()
+        self.weak_modalities = ("audio", "vision")
+        self.residuals = nn.ModuleDict(
+            {
+                modality: nn.Sequential(
+                    nn.LayerNorm(hidden_dim),
+                    nn.Linear(hidden_dim, hidden_dim),
+                    nn.GELU(),
+                )
+                for modality in self.weak_modalities
+            }
+        )
+        gate_input_dim = hidden_dim * 2 + 3
+        self.classification_gates = nn.ModuleDict(
+            {
+                modality: self._make_gate(gate_input_dim, hidden_dim)
+                for modality in self.weak_modalities
+            }
+        )
+        self.regression_gates = nn.ModuleDict(
+            {
+                modality: self._make_gate(gate_input_dim, hidden_dim)
+                for modality in self.weak_modalities
+            }
+        )
+        self.classification_output = nn.LayerNorm(hidden_dim)
+        self.regression_output = nn.LayerNorm(hidden_dim)
+
+    @staticmethod
+    def _make_gate(input_dim: int, hidden_dim: int) -> nn.Sequential:
+        gate = nn.Sequential(
+            nn.Linear(input_dim, max(16, hidden_dim // 2)),
+            nn.GELU(),
+            nn.Linear(max(16, hidden_dim // 2), 1),
+        )
+        # 初始时弱模态只产生小残差，避免一开始破坏已验证的文本锚点。
+        nn.init.constant_(gate[-1].bias, -3.0)
+        return gate
+
+    @staticmethod
+    def _availability_features(
+        batch: Dict[str, torch.Tensor], modality: str
+    ) -> tuple[torch.Tensor, torch.Tensor]:
+        text_mask = batch["text_mask"].bool()
+        modality_mask = batch[f"{modality}_mask"].bool() & text_mask
+        text_length = text_mask.sum(dim=1).clamp_min(1).to(torch.float32)
+        coverage = modality_mask.sum(dim=1).to(torch.float32) / text_length
+
+        run = torch.zeros_like(text_length)
+        longest = torch.zeros_like(text_length)
+        for position in range(text_mask.shape[1]):
+            missing = text_mask[:, position] & ~modality_mask[:, position]
+            run = torch.where(missing, run + 1.0, torch.zeros_like(run))
+            longest = torch.maximum(longest, run)
+        longest_gap_ratio = longest / text_length
+        descriptors = torch.stack(
+            [coverage.clamp(0.0, 1.0), longest_gap_ratio.clamp(0.0, 1.0)], dim=-1
+        )
+        return descriptors, coverage.clamp(0.0, 1.0)
+
+    def forward(
+        self,
+        embeddings: Dict[str, torch.Tensor],
+        batch: Dict[str, torch.Tensor],
+    ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+        anchor = embeddings["text"]
+        classification_fused = anchor
+        regression_fused = anchor
+        weights = []
+        for modality in self.weak_modalities:
+            availability, coverage = self._availability_features(batch, modality)
+            agreement = F.cosine_similarity(
+                anchor, embeddings[modality], dim=-1
+            ).unsqueeze(-1)
+            gate_input = torch.cat(
+                [anchor, embeddings[modality], availability, agreement], dim=-1
+            )
+            classification_weight = coverage * torch.sigmoid(
+                self.classification_gates[modality](gate_input).squeeze(-1)
+            )
+            regression_weight = coverage * torch.sigmoid(
+                self.regression_gates[modality](gate_input).squeeze(-1)
+            )
+            residual = self.residuals[modality](embeddings[modality])
+            classification_fused = (
+                classification_fused + classification_weight.unsqueeze(-1) * residual
+            )
+            regression_fused = (
+                regression_fused + regression_weight.unsqueeze(-1) * residual
+            )
+            weights.append(
+                torch.stack([classification_weight, regression_weight], dim=-1)
+            )
+        return (
+            self.classification_output(classification_fused),
+            self.regression_output(regression_fused),
+            torch.stack(weights, dim=1),
+        )
+
+
+class OutputResidualFusion(nn.Module):
+    """在强文本预测上学习小幅音视频纠错，初始输出严格等于文本模型。"""
+
+    def __init__(self, hidden_dim: int) -> None:
+        super().__init__()
+        self.weak_modalities = ("audio", "vision")
+        self.classification_corrections = nn.ModuleDict(
+            {modality: nn.Linear(hidden_dim, 3) for modality in self.weak_modalities}
+        )
+        self.regression_corrections = nn.ModuleDict(
+            {modality: nn.Linear(hidden_dim, 1) for modality in self.weak_modalities}
+        )
+        gate_dim = hidden_dim * 2 + 4
+        self.classification_gates = nn.ModuleDict(
+            {
+                modality: TaskSpecificTrustedFusion._make_gate(gate_dim, hidden_dim)
+                for modality in self.weak_modalities
+            }
+        )
+        self.regression_gates = nn.ModuleDict(
+            {
+                modality: TaskSpecificTrustedFusion._make_gate(gate_dim, hidden_dim)
+                for modality in self.weak_modalities
+            }
+        )
+        for head in list(self.classification_corrections.values()) + list(
+            self.regression_corrections.values()
+        ):
+            nn.init.zeros_(head.weight)
+            nn.init.zeros_(head.bias)
+        self.audio_scale = 1.0
+        self.vision_scale = 1.0
+
+    def forward(
+        self,
+        embeddings: Dict[str, torch.Tensor],
+        batch: Dict[str, torch.Tensor],
+        anchor_logits: torch.Tensor,
+        anchor_regression: torch.Tensor,
+    ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+        anchor = embeddings["text"]
+        anchor_probability = torch.softmax(anchor_logits, dim=-1)
+        entropy = -(
+            anchor_probability * anchor_probability.clamp_min(1e-8).log()
+        ).sum(dim=-1, keepdim=True) / torch.log(
+            torch.tensor(3.0, device=anchor.device, dtype=anchor.dtype)
+        )
+        classification = anchor_logits
+        regression = anchor_regression
+        weights = []
+        for modality in self.weak_modalities:
+            availability, coverage = TaskSpecificTrustedFusion._availability_features(
+                batch, modality
+            )
+            agreement = F.cosine_similarity(
+                anchor, embeddings[modality], dim=-1
+            ).unsqueeze(-1)
+            gate_input = torch.cat(
+                [anchor, embeddings[modality], availability, agreement, entropy], dim=-1
+            )
+            classification_weight = coverage * torch.sigmoid(
+                self.classification_gates[modality](gate_input).squeeze(-1)
+            )
+            regression_weight = coverage * torch.sigmoid(
+                self.regression_gates[modality](gate_input).squeeze(-1)
+            )
+            classification = classification + classification_weight.unsqueeze(-1) * (
+                self.classification_corrections[modality](embeddings[modality])
+                * float(getattr(self, f"{modality}_scale"))
+            )
+            regression = regression + regression_weight * (
+                self.regression_corrections[modality](embeddings[modality]).squeeze(-1)
+                * float(getattr(self, f"{modality}_scale"))
+            )
+            weights.append(
+                torch.stack([classification_weight, regression_weight], dim=-1)
+            )
+        return classification, regression, torch.stack(weights, dim=1)
+
+
 class MultiTaskTemporal(nn.Module):
     def __init__(
         self,
@@ -262,7 +449,27 @@ class MultiTaskTemporal(nn.Module):
         )
         self.gated = "gated_bigru" in model_name
         self.uncertainty_aware = "uncertainty_bigru" in model_name
-        if self.uncertainty_aware:
+        self.task_gated = model_name == "fusion_task_gated_bigru"
+        self.output_residual = model_name == "fusion_output_residual_bigru"
+        if self.output_residual:
+            self.fusion = OutputResidualFusion(hidden_dim)
+            fused_dim = hidden_dim
+            self.modality_classifiers = nn.ModuleDict(
+                {modality: nn.Linear(hidden_dim, 3) for modality in ("audio", "vision")}
+            )
+            self.modality_regressors = nn.ModuleDict(
+                {modality: nn.Linear(hidden_dim, 1) for modality in ("audio", "vision")}
+            )
+        elif self.task_gated:
+            self.fusion = TaskSpecificTrustedFusion(hidden_dim)
+            fused_dim = hidden_dim
+            self.modality_classifiers = nn.ModuleDict(
+                {modality: nn.Linear(hidden_dim, 3) for modality in ("audio", "vision")}
+            )
+            self.modality_regressors = nn.ModuleDict(
+                {modality: nn.Linear(hidden_dim, 1) for modality in ("audio", "vision")}
+            )
+        elif self.uncertainty_aware:
             self.fusion = UncertaintyAwareFusion(self.modalities, hidden_dim)
             fused_dim = hidden_dim
         elif self.gated:
@@ -288,6 +495,54 @@ class MultiTaskTemporal(nn.Module):
             for modality in self.modalities
         }
         extra_outputs = {}
+        if self.output_residual:
+            anchor_shared = self.shared(embeddings["text"])
+            anchor_logits = self.classifier(anchor_shared)
+            anchor_regression = self.regressor(anchor_shared).squeeze(-1)
+            classification, regression, task_fusion_weights = self.fusion(
+                embeddings, batch, anchor_logits, anchor_regression
+            )
+            return {
+                "classification_logits": classification,
+                "regression": regression,
+                "anchor_classification_logits": anchor_logits,
+                "anchor_regression": anchor_regression,
+                "modality_logits": {
+                    modality: self.modality_classifiers[modality](embeddings[modality])
+                    for modality in ("audio", "vision")
+                },
+                "modality_regressions": {
+                    modality: self.modality_regressors[modality](
+                        embeddings[modality]
+                    ).squeeze(-1)
+                    for modality in ("audio", "vision")
+                },
+                "task_fusion_weights": task_fusion_weights,
+            }
+        if self.task_gated:
+            classification_fused, regression_fused, task_fusion_weights = self.fusion(
+                embeddings, batch
+            )
+            classification_shared = self.shared(classification_fused)
+            regression_shared = self.shared(regression_fused)
+            anchor_shared = self.shared(embeddings["text"])
+            return {
+                "classification_logits": self.classifier(classification_shared),
+                "regression": self.regressor(regression_shared).squeeze(-1),
+                "anchor_classification_logits": self.classifier(anchor_shared),
+                "anchor_regression": self.regressor(anchor_shared).squeeze(-1),
+                "modality_logits": {
+                    modality: self.modality_classifiers[modality](embeddings[modality])
+                    for modality in ("audio", "vision")
+                },
+                "modality_regressions": {
+                    modality: self.modality_regressors[modality](
+                        embeddings[modality]
+                    ).squeeze(-1)
+                    for modality in ("audio", "vision")
+                },
+                "task_fusion_weights": task_fusion_weights,
+            }
         if self.uncertainty_aware:
             fused, modality_logits, fusion_weights, modality_uncertainty = self.fusion(
                 embeddings, batch

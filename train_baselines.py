@@ -15,6 +15,7 @@ import numpy as np
 import torch
 from sklearn.metrics import ConfusionMatrixDisplay
 from torch import nn
+from torch.nn import functional as F
 from torch.optim import AdamW
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 from torch.utils.tensorboard import SummaryWriter
@@ -46,6 +47,18 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--dropout", type=float, default=0.3)
     parser.add_argument("--learning-rate", type=float, default=1e-3)
     parser.add_argument(
+        "--anchor-learning-rate",
+        type=float,
+        default=None,
+        help="Optional lower learning rate for the warm-started text anchor and task heads",
+    )
+    parser.add_argument(
+        "--init-checkpoint",
+        type=Path,
+        default=None,
+        help="Warm-start matching model parameters from an existing checkpoint",
+    )
+    parser.add_argument(
         "--bert-learning-rate",
         type=float,
         default=2e-5,
@@ -58,6 +71,18 @@ def parse_args() -> argparse.Namespace:
         type=float,
         default=0.0,
         help="Per-modality auxiliary classification loss weight",
+    )
+    parser.add_argument(
+        "--anchor-consistency-weight",
+        type=float,
+        default=0.0,
+        help="Keep fused predictions close to the detached text-anchor predictions",
+    )
+    parser.add_argument(
+        "--masked-consistency-weight",
+        type=float,
+        default=0.0,
+        help="Consistency between clean and locally masked audio/vision predictions",
     )
     parser.add_argument(
         "--missing-augmentation-prob",
@@ -142,6 +167,7 @@ def batch_losses(
     regression_loss: nn.Module,
     regression_weight: float,
     auxiliary_weight: float = 0.0,
+    anchor_consistency_weight: float = 0.0,
 ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor, Dict[str, torch.Tensor]]:
     outputs = model(batch)
     cls_loss = classification_loss(
@@ -150,13 +176,37 @@ def batch_losses(
     reg_loss = regression_loss(outputs["regression"], batch["regression_label"])
     total = cls_loss + regression_weight * reg_loss
     if auxiliary_weight > 0 and "modality_logits" in outputs:
-        auxiliary = torch.stack(
+        auxiliary_classification = torch.stack(
             [
                 classification_loss(logits, batch["classification_label"])
                 for logits in outputs["modality_logits"].values()
             ]
         ).mean()
+        auxiliary = auxiliary_classification
+        if "modality_regressions" in outputs:
+            auxiliary_regression = torch.stack(
+                [
+                    regression_loss(prediction, batch["regression_label"])
+                    for prediction in outputs["modality_regressions"].values()
+                ]
+            ).mean()
+            auxiliary = auxiliary + regression_weight * auxiliary_regression
         total = total + auxiliary_weight * auxiliary
+    if anchor_consistency_weight > 0 and "anchor_classification_logits" in outputs:
+        anchor_probability = torch.softmax(
+            outputs["anchor_classification_logits"].detach(), dim=-1
+        )
+        classification_consistency = F.kl_div(
+            torch.log_softmax(outputs["classification_logits"], dim=-1),
+            anchor_probability,
+            reduction="batchmean",
+        )
+        regression_consistency = F.smooth_l1_loss(
+            outputs["regression"], outputs["anchor_regression"].detach(), beta=0.5
+        )
+        total = total + anchor_consistency_weight * (
+            classification_consistency + regression_weight * regression_consistency
+        )
     return total, cls_loss, reg_loss, outputs
 
 
@@ -172,6 +222,7 @@ def train_epoch(
     missing_augmentation_prob: float = 0.0,
     missing_ratio_min: float = 0.1,
     missing_ratio_max: float = 0.5,
+    masked_consistency_weight: float = 0.0,
 ) -> Dict[str, float]:
     model.train()
     totals = np.zeros(3, dtype=np.float64)
@@ -179,27 +230,63 @@ def train_epoch(
     for batch_index, batch in enumerate(loader):
         if max_batches is not None and batch_index >= max_batches:
             break
+        clean_batch = batch
+        masked_batch = None
         if missing_augmentation_prob > 0:
-            batch = augment_joint_av_missingness(
+            masked_batch = augment_joint_av_missingness(
                 batch,
                 missing_augmentation_prob,
                 missing_ratio_min,
                 missing_ratio_max,
             )
-        batch = move_batch(batch, device)
+            if masked_consistency_weight <= 0:
+                clean_batch = masked_batch
+                masked_batch = None
+        clean_batch = move_batch(clean_batch, device)
+        if masked_batch is not None:
+            masked_batch = move_batch(masked_batch, device)
         optimizer.zero_grad(set_to_none=True)
-        total, cls_loss, reg_loss, _ = batch_losses(
+        total, cls_loss, reg_loss, clean_outputs = batch_losses(
             model,
-            batch,
+            clean_batch,
             classification_loss,
             regression_loss,
             regression_weight,
             getattr(model, "auxiliary_weight", 0.0),
+            getattr(model, "anchor_consistency_weight", 0.0),
         )
+        if masked_batch is not None:
+            masked_total, masked_cls_loss, masked_reg_loss, masked_outputs = batch_losses(
+                model,
+                masked_batch,
+                classification_loss,
+                regression_loss,
+                regression_weight,
+                getattr(model, "auxiliary_weight", 0.0),
+                getattr(model, "anchor_consistency_weight", 0.0),
+            )
+            clean_probability = torch.softmax(
+                clean_outputs["classification_logits"].detach(), dim=-1
+            )
+            classification_consistency = F.kl_div(
+                torch.log_softmax(masked_outputs["classification_logits"], dim=-1),
+                clean_probability,
+                reduction="batchmean",
+            )
+            regression_consistency = F.smooth_l1_loss(
+                masked_outputs["regression"],
+                clean_outputs["regression"].detach(),
+                beta=0.5,
+            )
+            total = 0.5 * (total + masked_total) + masked_consistency_weight * (
+                classification_consistency + regression_weight * regression_consistency
+            )
+            cls_loss = 0.5 * (cls_loss + masked_cls_loss)
+            reg_loss = 0.5 * (reg_loss + masked_reg_loss)
         total.backward()
         torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=5.0)
         optimizer.step()
-        batch_size = batch["classification_label"].shape[0]
+        batch_size = clean_batch["classification_label"].shape[0]
         totals += np.array(
             [total.item(), cls_loss.item(), reg_loss.item()], dtype=np.float64
         ) * batch_size
@@ -272,6 +359,7 @@ def evaluate(
             regression_loss,
             regression_weight,
             getattr(model, "auxiliary_weight", 0.0),
+            getattr(model, "anchor_consistency_weight", 0.0),
         )
         batch_size = batch["classification_label"].shape[0]
         totals += np.array(
@@ -365,7 +453,26 @@ def train_model(
         hidden_dim=args.hidden_dim,
         dropout=args.dropout,
     ).to(device)
+    if args.init_checkpoint is not None:
+        checkpoint = torch.load(
+            args.init_checkpoint, map_location=device, weights_only=False
+        )
+        source_state = checkpoint["model_state"]
+        target_state = model.state_dict()
+        compatible_state = {
+            name: value
+            for name, value in source_state.items()
+            if name in target_state and target_state[name].shape == value.shape
+        }
+        if not compatible_state:
+            raise ValueError(f"No compatible parameters in {args.init_checkpoint}")
+        model.load_state_dict(compatible_state, strict=False)
+        print(
+            f"Warm-started {len(compatible_state)}/{len(target_state)} tensors "
+            f"from {args.init_checkpoint}"
+        )
     model.auxiliary_weight = args.auxiliary_weight
+    model.anchor_consistency_weight = args.anchor_consistency_weight
     class_weights = module.class_weights(args.class_weight_power).to(device)
     classification_loss = (
         WeightedFocalLoss(class_weights, gamma=args.focal_gamma)
@@ -389,6 +496,25 @@ def train_model(
             [
                 {"params": bert_parameters, "lr": args.bert_learning_rate},
                 {"params": task_parameters, "lr": args.learning_rate},
+            ],
+            weight_decay=args.weight_decay,
+        )
+    elif args.anchor_learning_rate is not None:
+        anchor_prefixes = ("encoders.text.", "shared.", "classifier.", "regressor.")
+        anchor_parameters = [
+            parameter
+            for name, parameter in model.named_parameters()
+            if parameter.requires_grad and name.startswith(anchor_prefixes)
+        ]
+        new_parameters = [
+            parameter
+            for name, parameter in model.named_parameters()
+            if parameter.requires_grad and not name.startswith(anchor_prefixes)
+        ]
+        optimizer = AdamW(
+            [
+                {"params": anchor_parameters, "lr": args.anchor_learning_rate},
+                {"params": new_parameters, "lr": args.learning_rate},
             ],
             weight_decay=args.weight_decay,
         )
@@ -423,6 +549,7 @@ def train_model(
             args.missing_augmentation_prob,
             args.missing_ratio_min,
             args.missing_ratio_max,
+            args.masked_consistency_weight,
         )
         valid_metrics = evaluate(
             model,
@@ -593,6 +720,11 @@ def main() -> None:
             **vars(args),
             "data": str(data_path.resolve()),
             "output_dir": str(args.output_dir.resolve()),
+            "init_checkpoint": (
+                str(args.init_checkpoint.resolve())
+                if args.init_checkpoint is not None
+                else None
+            ),
             "device": str(device),
             "split_sizes": module.split_sizes(),
             "class_weights": module.class_weights(args.class_weight_power).tolist(),

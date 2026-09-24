@@ -1,0 +1,2 @@
+﻿classification,audio_scale,vision_scale,regression,accuracy,macro_f1,weighted_f1,mae,pearson,selection_score,mean_vote_agreement,unanimous_ratio
+fusion_output_residual_bigru_majority_3seed,0.25,0.25,text_audio_regression_mean_3seed,0.6524725274725275,0.6457753521577895,0.6592315712648599,0.5647514482289331,0.6771826428545406,1.1347075122693524,0.9377289377289377,0.8173076923076923

@@ -1,0 +1,2 @@
+﻿model,modalities,parameters,best_epoch,elapsed_seconds,split,loss,accuracy,macro_f1,weighted_f1,mae,pearson,selection_score
+fusion_output_residual_bigru,text+audio+vision,425461,9,122.695,valid,1.498319876063001,0.635989010989011,0.6278863752836957,0.6437741609002315,0.6010105609893799,0.6653484299215329,1.092897951542102

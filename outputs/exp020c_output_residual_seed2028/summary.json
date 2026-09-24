@@ -1,0 +1,24 @@
+[
+  {
+    "model": "fusion_output_residual_bigru",
+    "modalities": [
+      "text",
+      "audio",
+      "vision"
+    ],
+    "parameters": 425461,
+    "best_epoch": 9,
+    "elapsed_seconds": 122.69545339999604,
+    "valid": {
+      "loss": 1.498319876063001,
+      "classification_loss": 1.00009866468199,
+      "regression_loss": 0.4020476701495412,
+      "accuracy": 0.635989010989011,
+      "macro_f1": 0.6278863752836957,
+      "weighted_f1": 0.6437741609002315,
+      "mae": 0.6010105609893799,
+      "pearson": 0.6653484299215329,
+      "selection_score": 1.092897951542102
+    }
+  }
+]
