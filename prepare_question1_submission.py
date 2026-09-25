@@ -151,36 +151,72 @@ def create_typical_figure(
     words = data["words"]
     intervals = data["word_intervals"]
     video_path = data_dir / Path(row["relative_path"])
-    selected = np.unique(np.linspace(0, len(words) - 1, 5).round().astype(int))
+    midpoints = intervals.mean(axis=1)
+    target_times = np.linspace(float(midpoints[0]), float(midpoints[-1]), 4)
+    selected = np.unique(
+        np.asarray([int(np.argmin(np.abs(midpoints - target))) for target in target_times])
+    )
 
     with tempfile.TemporaryDirectory(prefix="q1_figure_") as temp_dir:
         wav_path = Path(temp_dir) / "audio.wav"
         extract_wav(video_path, wav_path, 16000)
         waveform, sample_rate = sf.read(wav_path)
 
-    fig = plt.figure(figsize=(15, 9))
-    grid = GridSpec(3, 5, figure=fig, height_ratios=[2.2, 1.2, 1.1], hspace=0.38)
+    audio_duration = len(waveform) / sample_rate
+    fig = plt.figure(figsize=(15, 8.8), facecolor="white")
+    grid = GridSpec(
+        3,
+        4,
+        figure=fig,
+        height_ratios=[2.15, 1.45, 1.35],
+        hspace=0.48,
+        wspace=0.2,
+    )
+
     for column, word_index in enumerate(selected):
         midpoint = float(intervals[word_index].mean())
         axis = fig.add_subplot(grid[0, column])
         axis.imshow(read_video_frame(video_path, midpoint))
         axis.set_title(
-            f"{words[word_index]}\n{intervals[word_index, 0]:.2f}–{intervals[word_index, 1]:.2f}秒",
+            f"{words[word_index]}\n{intervals[word_index, 0]:.2f}–{intervals[word_index, 1]:.2f} 秒",
             fontsize=10,
+            pad=6,
         )
         axis.axis("off")
 
     audio_axis = fig.add_subplot(grid[1, :])
     times = np.arange(len(waveform)) / sample_rate
     step = max(1, len(times) // 12000)
-    audio_axis.plot(times[::step], waveform[::step], color="#334155", linewidth=0.55)
-    for word_index in selected:
-        start, end = intervals[word_index]
-        audio_axis.axvspan(start, end, color="#2563EB", alpha=0.22)
-        audio_axis.text((start + end) / 2, 0.92, str(words[word_index]), rotation=35,
-                        transform=audio_axis.get_xaxis_transform(), ha="center", va="top", fontsize=8)
-    audio_axis.set(xlabel="物理时间（秒）", ylabel="归一化幅值", title="转写词区间与原始语音波形")
-    audio_axis.set_xlim(0, float(row["duration_s"]))
+    audio_axis.plot(times[::step], waveform[::step], color="#334155", linewidth=0.5, zorder=2)
+    selected_set = set(selected.tolist())
+    for word_index, (start, end) in enumerate(intervals):
+        is_selected = word_index in selected_set
+        audio_axis.axvspan(
+            start,
+            end,
+            color="#2563EB" if is_selected else "#93C5FD",
+            alpha=0.32 if is_selected else 0.12,
+            zorder=1,
+        )
+        if is_selected:
+            audio_axis.text(
+                (start + end) / 2,
+                0.91,
+                str(words[word_index]),
+                transform=audio_axis.get_xaxis_transform(),
+                ha="center",
+                va="top",
+                fontsize=8.5,
+                weight="bold",
+                color="#1E3A8A",
+            )
+    audio_axis.set(
+        xlabel="物理时间（秒）",
+        ylabel="波形幅值",
+        title="转写词区间与原始语音波形",
+    )
+    audio_axis.set_xlim(0, audio_duration)
+    audio_axis.grid(axis="x", color="#CBD5E1", linewidth=0.5, alpha=0.65)
 
     feature_axis = fig.add_subplot(grid[2, :])
     energies = np.vstack(
@@ -192,15 +228,17 @@ def create_typical_figure(
     )
     image = feature_axis.imshow(energies, aspect="auto", cmap="RdYlBu_r", vmin=-2, vmax=2)
     feature_axis.set_yticks([0, 1, 2], ["文本", "语音", "视觉"])
-    feature_axis.set_xticks(np.arange(len(words)), words, rotation=55, ha="right", fontsize=8)
-    feature_axis.set_title("各词区间三模态特征相对变化强度（行内标准化）")
-    fig.colorbar(image, ax=feature_axis, fraction=0.02, pad=0.01, label="标准化变化强度")
+    feature_axis.set_xticks(np.arange(len(words)), words, rotation=52, ha="right", fontsize=7.4)
+    feature_axis.set_title("词级三模态特征响应（行内标准化）", fontsize=10.5)
+    fig.colorbar(image, ax=feature_axis, fraction=0.016, pad=0.012, label="相对变化强度")
+
     fig.suptitle(
         f"典型样本的文本—语音—视觉词级对齐\n{sample_id.replace('$_$', ' / ')}",
-        fontsize=16,
+        fontsize=15,
+        y=0.985,
     )
-    fig.subplots_adjust(top=0.88, bottom=0.14, left=0.06, right=0.96)
-    fig.savefig(output_path, dpi=180)
+    fig.subplots_adjust(top=0.90, bottom=0.12, left=0.06, right=0.965)
+    fig.savefig(output_path, dpi=200, bbox_inches="tight", facecolor="white")
     plt.close(fig)
 
 
@@ -357,7 +395,7 @@ def create_zip(
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="生成问题1全量汇总、典型图和提交包")
-    parser.add_argument("--typical-sample", default="-UacrmKiTn4$_$10")
+    parser.add_argument("--typical-sample", default="-aqamKhZ1Ec$_$0")
     parser.add_argument("--output-dir", type=Path, default=PROJECT_ROOT / "outputs/question1_submission")
     args = parser.parse_args()
     args.output_dir.mkdir(parents=True, exist_ok=True)
