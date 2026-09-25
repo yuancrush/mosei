@@ -1,0 +1,47 @@
+{
+  "protocol": {
+    "split": "official_valid_only",
+    "random_block_repeats": 20,
+    "ratios": [
+      0.1,
+      0.2,
+      0.3,
+      0.4,
+      0.5,
+      0.6,
+      0.7
+    ],
+    "test_accessed": false,
+    "attachment3_masks_used_for_selection": false
+  },
+  "clean": {
+    "accuracy": 0.6524725274725275,
+    "macro_f1": 0.6457753521577895,
+    "weighted_f1": 0.6592315712648599,
+    "mae": 0.5647514462471008,
+    "pearson": 0.6771825880288844
+  },
+  "robustness_auc": [
+    {
+      "missing_modalities": "audio",
+      "macro_f1_mean_over_ratios": 0.642565959451588,
+      "macro_f1_normalized_auc": 0.994936905220324,
+      "mae_mean_over_ratios": 0.5650969496795109,
+      "pearson_mean_over_ratios": 0.6770335954836967
+    },
+    {
+      "missing_modalities": "vision",
+      "macro_f1_mean_over_ratios": 0.6444775307612771,
+      "macro_f1_normalized_auc": 0.9981611709416873,
+      "mae_mean_over_ratios": 0.5647514462471008,
+      "pearson_mean_over_ratios": 0.6771825880288844
+    },
+    {
+      "missing_modalities": "audio+vision",
+      "macro_f1_mean_over_ratios": 0.6421718249857983,
+      "macro_f1_normalized_auc": 0.9942584065125895,
+      "mae_mean_over_ratios": 0.565533430661474,
+      "pearson_mean_over_ratios": 0.6767775409344079
+    }
+  ]
+}

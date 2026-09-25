@@ -1,0 +1,84 @@
+{
+  "protocol": {
+    "split": "official_test",
+    "sample_count": 727,
+    "run_count": 1,
+    "selection_completed_before_test": true,
+    "prediction_rule_changed_after_test": false
+  },
+  "frozen_configuration": {
+    "classification": "EXP020C三模态输出残差BiGRU，3种子多数投票",
+    "audio_scale": 0.25,
+    "vision_scale": 0.25,
+    "regression": "Text+Audio-BiGRU，3种子算术平均",
+    "uncertainty_temperature": 1.5775484190264413,
+    "temperature_changes_predicted_class": false
+  },
+  "classification": {
+    "accuracy": 0.672627235213205,
+    "macro_f1": 0.6498866090154873,
+    "weighted_f1": 0.6810858175975555,
+    "per_class": {
+      "负向": {
+        "precision": 0.7122641509433962,
+        "recall": 0.7294685990338164,
+        "f1-score": 0.720763723150358,
+        "support": 207.0
+      },
+      "中性": {
+        "precision": 0.4292682926829268,
+        "recall": 0.5569620253164557,
+        "f1-score": 0.48484848484848486,
+        "support": 158.0
+      },
+      "正向": {
+        "precision": 0.8064516129032258,
+        "recall": 0.6906077348066298,
+        "f1-score": 0.7440476190476191,
+        "support": 362.0
+      }
+    },
+    "confusion_matrix": [
+      [
+        151,
+        36,
+        20
+      ],
+      [
+        30,
+        88,
+        40
+      ],
+      [
+        31,
+        81,
+        250
+      ]
+    ]
+  },
+  "classification_uncertainty": {
+    "nll_temperature_scaled": 0.7501282029020115,
+    "brier_temperature_scaled": 0.4369651561013177,
+    "ece_10bin_temperature_scaled": 0.03870627722681143,
+    "entropy_error_auroc": 0.7373648846041485,
+    "mean_vote_agreement": 0.9564419990829893,
+    "unanimous_ratio": 0.8720770288858322
+  },
+  "regression": {
+    "mae": 0.6129477790997829,
+    "pearson": 0.6836950676033839
+  },
+  "regression_uncertainty": {
+    "seed_std_error_spearman": 0.19393111577680788,
+    "seed_std_error_spearman_p": 1.3637458368616207e-07,
+    "mean_seed_std": 0.16534604132175446
+  },
+  "checkpoint_sha256": {
+    "outputs/exp020c_output_residual/fusion_output_residual_bigru/best.pt": "bd5ead1528c8b528b4dfe678ecbb7d820490aee984d7b713a7ae07d190ed74c7",
+    "outputs/exp020c_output_residual_seed2027/fusion_output_residual_bigru/best.pt": "a9dfe91fd50d9d15e1562060dbc4e57373396110e397585d3d3e6d9c7a771702",
+    "outputs/exp020c_output_residual_seed2028/fusion_output_residual_bigru/best.pt": "8aa6bb4813df7db818a7ede56024375790a4d294796d6505bb95a6e245c4396c",
+    "outputs/exp014_text_audio_seed2026/text_audio_bigru/best.pt": "7277963ab4cc33e66bc9a8bc0e2b295749e2ab897aaefb5fe8123ddd49a5bedf",
+    "outputs/exp014_text_audio_seed2027/text_audio_bigru/best.pt": "ea9525b733ed515a468cec6b28b612d56f6ad374a562cfd5d9549f175e278a0c",
+    "outputs/exp014_text_audio_seed2028/text_audio_bigru/best.pt": "25d19e245fb453d44d9e6db0987303e50c3e22df32dd4fdbec833c96d40d7f2c"
+  }
+}

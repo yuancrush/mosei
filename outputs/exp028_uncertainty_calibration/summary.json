@@ -1,0 +1,56 @@
+{
+  "protocol": {
+    "split": "official_valid_only",
+    "sample_count": 728,
+    "temperature_crossfit_folds": 5,
+    "test_accessed": false
+  },
+  "temperature": {
+    "full_validation": 1.5775484190264413,
+    "fold_values": [
+      1.6606495746364256,
+      1.5997619715235936,
+      1.5618422375049559,
+      1.4947276889943575,
+      1.575183991324174
+    ]
+  },
+  "classification_calibration": {
+    "uncalibrated_nll": 0.8576890950945342,
+    "crossfit_calibrated_nll": 0.815264756604843,
+    "uncalibrated_brier": 0.48980788017539156,
+    "crossfit_calibrated_brier": 0.4775460727226755,
+    "uncalibrated_ece": 0.09119057778489789,
+    "crossfit_calibrated_ece": 0.043426842733613615,
+    "entropy_error_auroc": 0.6744164759725402,
+    "mutual_information_error_auroc": 0.5030247555648014,
+    "vote_disagreement_error_auroc": 0.5571749531932598,
+    "aurc_entropy": 0.23100561230251715
+  },
+  "regression_uncertainty": {
+    "seed_std_absolute_error_spearman": 0.23719337421003323,
+    "seed_std_absolute_error_spearman_p": 9.078675604436142e-11,
+    "aurc_seed_std": 0.4816330789575967,
+    "overall_mae": 0.5647514473641336
+  },
+  "vote_agreement_strata": [
+    {
+      "vote_agreement": 0.3333333333333333,
+      "count": 3,
+      "accuracy": 0.33333333333333337,
+      "mean_entropy": 1.0934190479403842
+    },
+    {
+      "vote_agreement": 0.6666666666666666,
+      "count": 130,
+      "accuracy": 0.5153846153846153,
+      "mean_entropy": 0.9918667936303802
+    },
+    {
+      "vote_agreement": 1.0,
+      "count": 595,
+      "accuracy": 0.6840336134453782,
+      "mean_entropy": 0.7723603943948643
+    }
+  ]
+}

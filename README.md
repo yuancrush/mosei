@@ -134,7 +134,8 @@ pythonproject/
 - 问题1工程已完成：100条均通过结构检查；严格对齐口径为78条自动高置信、2条部分匹配、20条不支持完整词级证据。典型样本图已重构为完整的可核验对齐证据链。
 - 问题2正式分类模型为三种子三模态输出残差BiGRU，正式回归模型为三种子Text+Audio-BiGRU。验证集Accuracy/Macro-F1/MAE/Pearson为0.6525/0.6458/0.5648/0.6772，附件3的30条预测已冻结。
 - 问题3已完成反事实模态贡献、连续块局部证据和多种子稳定性验证；附件4已有20条预测、99条局部证据和18张关键帧。
-- 三问现有核心实验均已冻结，但官方test一次性最终评估与最终白名单附件打包尚未完成。任何新增模型选择必须发生在test评估之前。
+- 补充的轻量校准未通过统计更新门槛，正式模型保持不变；随机连续缺失、不确定性和重复随机解释实验均已完成。
+- 官方test已在所有选择冻结后唯一一次评估：Accuracy/Macro-F1/Weighted-F1=0.6726/0.6499/0.6811，MAE/Pearson=0.6129/0.6837。`RUN_COMPLETE.json`存在时脚本拒绝再次运行，禁止据此调参。
 - 写作人员必须从[`reports/README.md`](reports/README.md)和[`reports/writing_handoffs/README.md`](reports/writing_handoffs/README.md)进入最新口径，不得从历史实验中重新挑选结果。
 
 当前完整状态见[`reports/当前解题进度与剩余阶段.md`](reports/当前解题进度与剩余阶段.md)。历史基线与筛选过程分别保留在[`reports/baseline_report.md`](reports/baseline_report.md)和`experiments/`，仅用于实验追溯。跨会话继续工作时，先阅读[`NEXT_SESSION.md`](NEXT_SESSION.md)。

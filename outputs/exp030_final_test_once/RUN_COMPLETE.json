@@ -1,0 +1,6 @@
+{
+  "completed_at": "2026-09-25T23:33:46.336473+08:00",
+  "official_test_run_count": 1,
+  "summary_file": "summary.json",
+  "rerun_guard": "若此文件存在，脚本拒绝再次运行"
+}

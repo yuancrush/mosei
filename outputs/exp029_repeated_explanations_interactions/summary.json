@@ -1,0 +1,50 @@
+{
+  "protocol": {
+    "split": "official_valid_only",
+    "sample_count": 728,
+    "random_repeats_per_sample": 30,
+    "classification_block_size": 5,
+    "classification_top_k": 2,
+    "regression_block_size": 10,
+    "regression_top_k": 1,
+    "test_accessed": false
+  },
+  "classification_fidelity": {
+    "top_deletion_mean": 0.18757008394779084,
+    "random_deletion_mean": 0.018923536226180666,
+    "top_minus_random_deletion_mean": 0.1686465477216102,
+    "top_minus_random_deletion_ci95": [
+      0.15830159145617184,
+      0.17935511179998406
+    ],
+    "wilcoxon_greater_p": 8.891620406780756e-120,
+    "top_retention_mean": 0.8089080935159882,
+    "random_retention_mean": 0.498032262116831,
+    "top_minus_random_retention_mean": 0.3108758313991573,
+    "top_minus_random_retention_ci95": [
+      0.30205509238330785,
+      0.32007171972976073
+    ]
+  },
+  "regression_fidelity": {
+    "top_deletion_mean": 0.26173910905944775,
+    "random_deletion_mean": 0.11387929865466656,
+    "top_minus_random_deletion_mean": 0.14785981040478122,
+    "top_minus_random_deletion_ci95": [
+      0.1361543188085663,
+      0.1606372906886975
+    ],
+    "wilcoxon_greater_p": 3.8690613070484405e-121
+  },
+  "audio_visual_interaction_given_text": {
+    "definition": "p(T,A,V)-p(T,A,0)-p(T,0,V)+p(T,0,0)",
+    "signed_mean": 7.307807822803875e-05,
+    "signed_mean_ci95": [
+      4.3265151044169624e-05,
+      0.00010288773861887688
+    ],
+    "absolute_mean": 0.00022984533519535274,
+    "positive_ratio": 0.5673076923076923,
+    "negative_ratio": 0.4107142857142857
+  }
+}
