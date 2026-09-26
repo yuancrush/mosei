@@ -25,7 +25,7 @@
 | 人工复核为部分匹配 | 2 |
 | 人工复核为不一致/无有效语音 | 20 |
 | 可直接作为自动高置信词级映射 | 78 |
-| 提交包 | 21.45 MB，低于50 MB |
+| 问题1阶段包 | 21.45 MB；现已并入三个问题统一的最终附件 |
 
 ## 分析与写作意义
 
@@ -38,4 +38,4 @@
 - `reports/question1_stage_a/alignment_review_summary.json`
 - `reports/question1_stage_a/低对齐置信度样本ASR复核.csv`
 - `reports/question1_stage_a/finalization_summary.json`
-- `outputs/question1_submission/问题1_可复现提交包.zip`
+- `submission/研究生数学建模E题_最终提交附件.zip`

@@ -42,7 +42,7 @@ OUTPUT_RESIDUAL_CHECKPOINTS = [
         "exp020c_output_residual_seed2028",
     )
 ]
-OUTPUT_DIR = PROJECT_ROOT / "outputs" / "exp016_attachment3_predictions"
+OUTPUT_DIR = PROJECT_ROOT / "outputs" / "exp020c_attachment3_predictions"
 CLASS_NAMES = {0: "负向", 1: "中性", 2: "正向"}
 
 
@@ -51,7 +51,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--classification-preset",
         choices=("text", "output_residual"),
-        default="text",
+        default="output_residual",
     )
     parser.add_argument("--output-dir", type=Path, default=OUTPUT_DIR)
     return parser.parse_args()

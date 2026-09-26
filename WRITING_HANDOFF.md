@@ -11,7 +11,7 @@
 3. `outputs/question1_submission/典型样本对齐验证.png`：正文典型样本图；
 4. `outputs/question1_quality/quality_overview.png`：中文质量统计图；
 5. `experiments/Q1-STAGE2_视觉回退与接口复验.md`：优化实验过程；
-6. `outputs/question1_submission/问题1_可复现提交包.zip`：最终附件候选。
+6. `submission/研究生数学建模E题_最终提交附件.zip`：三个问题统一后的唯一正式附件。
 7. `reports/question1_stage_a/低对齐置信度样本ASR复核.csv`：22条低MMS分样本复核明细。
 
 ## 可直接交给新Codex会话的提示词

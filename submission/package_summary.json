@@ -1,0 +1,21 @@
+{
+  "package": "研究生数学建模E题_最终提交附件.zip",
+  "file_count": 238,
+  "question1_feature_count": 100,
+  "attachment3_prediction_count": 30,
+  "attachment4_prediction_count": 20,
+  "classification_weight_count": 3,
+  "regression_weight_count": 3,
+  "size_bytes": 35840883,
+  "size_mb": 34.18052959442139,
+  "under_50mb": true,
+  "sha256": "ad6406671f270a7f077a1030dc8adfb1604058b1fbdaf64b61b657b5ba2a3ab6",
+  "excluded": [
+    "原始赛事数据",
+    "smoke输出",
+    "EXP-016旧附件3预测",
+    "淘汰的BERT微调权重",
+    "历史候选模型权重",
+    "官方test逐样本预测"
+  ]
+}

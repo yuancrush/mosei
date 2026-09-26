@@ -25,7 +25,8 @@ AUDIO_RUNS = [
     PROJECT_ROOT / "outputs" / f"exp014_text_audio_seed{seed}" / "text_audio_bigru" / "valid_predictions.json"
     for seed in (2026, 2027, 2028)
 ]
-OUTPUT_DIR = PROJECT_ROOT / "outputs" / "exp016_attachment3_predictions"
+# 历史敏感性分析单独存放，禁止覆盖正式附件3预测目录。
+OUTPUT_DIR = PROJECT_ROOT / "outputs" / "exp016_coverage_fallback_history"
 
 
 def read_json(path: Path) -> dict:

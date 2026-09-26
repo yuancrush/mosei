@@ -422,7 +422,8 @@ def main() -> None:
         manifest, log, data_dir, args.output_dir / "零人脸检出样本诊断.png"
     )
 
-    zip_path = args.output_dir / "问题1_可复现提交包.zip"
+    # 这里只生成问题1阶段复现包；赛事唯一最终附件由build_final_submission.py统一生成。
+    zip_path = args.output_dir / "问题1_阶段复现包_非最终提交.zip"
     create_zip(zip_path, args.output_dir, feature_root)
     package_summary = {
         "sample_count": int(log.shape[0]),
@@ -433,7 +434,7 @@ def main() -> None:
         "under_50mb": zip_path.stat().st_size <= 50 * 1024**2,
         "sha256": sha256(zip_path),
     }
-    (args.output_dir / "package_summary.json").write_text(
+    (args.output_dir / "question1_stage_package_summary.json").write_text(
         json.dumps(package_summary, ensure_ascii=False, indent=2), encoding="utf-8"
     )
     print(json.dumps(package_summary, ensure_ascii=False, indent=2))

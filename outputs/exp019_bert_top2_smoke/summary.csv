@@ -1,2 +1,0 @@
-﻿model,modalities,parameters,best_epoch,elapsed_seconds,split,loss,accuracy,macro_f1,weighted_f1,mae,pearson,selection_score
-text_bert_finetune,text,14276997,2,1.443,valid,2.042460083961487,0.46875,0.33968253968253964,0.35267857142857145,1.06572425365448,-0.05104395482339896,-0.06660283302568598

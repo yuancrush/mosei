@@ -136,6 +136,7 @@ pythonproject/
 - 问题3已完成反事实模态贡献、连续块局部证据和多种子稳定性验证；附件4已有20条预测、99条局部证据和18张关键帧。
 - 补充的轻量校准未通过统计更新门槛，正式模型保持不变；随机连续缺失、不确定性和重复随机解释实验均已完成。
 - 官方test已在所有选择冻结后唯一一次评估：Accuracy/Macro-F1/Weighted-F1=0.6726/0.6499/0.6811，MAE/Pearson=0.6129/0.6837。`RUN_COMPLETE.json`存在时脚本拒绝再次运行，禁止据此调参。
+- 三问唯一算法附件已按白名单生成于`submission/研究生数学建模E题_最终提交附件.zip`；禁止提交整个`outputs/`目录或历史实验权重。
 - 写作人员必须从[`reports/README.md`](reports/README.md)和[`reports/writing_handoffs/README.md`](reports/writing_handoffs/README.md)进入最新口径，不得从历史实验中重新挑选结果。
 
 当前完整状态见[`reports/当前解题进度与剩余阶段.md`](reports/当前解题进度与剩余阶段.md)。历史基线与筛选过程分别保留在[`reports/baseline_report.md`](reports/baseline_report.md)和`experiments/`，仅用于实验追溯。跨会话继续工作时，先阅读[`NEXT_SESSION.md`](NEXT_SESSION.md)。
