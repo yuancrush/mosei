@@ -1,0 +1,9 @@
+﻿modality,x,y,spearman,p_value
+audio,coverage,effective_gate_025_mean,0.21628767618171588,3.7319624381158394e-09
+audio,coverage,effective_residual_l2_mean,0.1398308391393393,0.00015372748331976815
+audio,longest_gap_ratio,effective_gate_025_mean,-0.21628767618171588,3.7319624381158394e-09
+audio,longest_gap_ratio,effective_residual_l2_mean,-0.1398308391393393,0.00015372748331976815
+vision,coverage,effective_gate_025_mean,-0.01692225412674984,0.648508329321009
+vision,coverage,effective_residual_l2_mean,-0.00942008217860604,0.7996990693696049
+vision,longest_gap_ratio,effective_gate_025_mean,0.016559908293139504,0.6555441211871498
+vision,longest_gap_ratio,effective_residual_l2_mean,0.011577457798758834,0.7551541007930251
