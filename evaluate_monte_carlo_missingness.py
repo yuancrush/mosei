@@ -13,6 +13,7 @@ import matplotlib
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+from plot_style import apply_chinese_style
 import numpy as np
 import torch
 
@@ -200,8 +201,7 @@ def write_csv(path: Path, rows: list[dict]) -> None:
 
 
 def create_figure(summary_rows: list[dict], clean: dict, path: Path) -> None:
-    plt.rcParams["font.sans-serif"] = ["Microsoft YaHei", "SimHei", "Arial"]
-    plt.rcParams["axes.unicode_minus"] = False
+    apply_chinese_style()
     labels = {"audio": "语音缺失", "vision": "视觉缺失", "audio+vision": "语音+视觉同步缺失"}
     colors = {"audio": "#2563EB", "vision": "#F59E0B", "audio+vision": "#DC2626"}
     fig, axes = plt.subplots(1, 3, figsize=(14, 4.3))
@@ -225,8 +225,8 @@ def create_figure(summary_rows: list[dict], clean: dict, path: Path) -> None:
     for axis in axes:
         axis.set_xlabel("随机连续缺失比例（%）")
         axis.grid(alpha=0.25)
+        axis.legend(fontsize=8, title="缺失情形")
     axes[0].set_ylabel("指标值")
-    axes[0].legend(fontsize=8)
     fig.suptitle("随机连续块缺失下的验证集鲁棒性响应", fontsize=14)
     fig.tight_layout()
     fig.savefig(path, dpi=180, bbox_inches="tight")

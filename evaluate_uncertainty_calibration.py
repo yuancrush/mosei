@@ -10,6 +10,7 @@ import matplotlib
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+from plot_style import apply_chinese_style
 import numpy as np
 from scipy.optimize import minimize_scalar
 from scipy.special import softmax
@@ -138,10 +139,9 @@ def create_figure(
     risk_rows: list[dict],
     path: Path,
 ) -> None:
-    plt.rcParams["font.sans-serif"] = ["Microsoft YaHei", "SimHei", "Arial"]
-    plt.rcParams["axes.unicode_minus"] = False
+    apply_chinese_style()
     fig, axes = plt.subplots(1, 3, figsize=(13.5, 4.2))
-    axes[0].plot([0, 1], [0, 1], "--", color="#64748B", lw=1)
+    axes[0].plot([0, 1], [0, 1], "--", color="#64748B", lw=1, label="理想校准")
     for rows, label, color in (
         (uncalibrated_bins, "校准前", "#DC2626"),
         (calibrated_bins, "温度校准后", "#2563EB"),
@@ -163,15 +163,19 @@ def create_figure(
         [row["classification_error_rate"] for row in risk_rows],
         marker="o",
         color="#7C3AED",
+        label="分类错误率",
     )
     axes[1].set(xlabel="覆盖率（%）", ylabel="错误率", title="分类风险—覆盖曲线")
+    axes[1].legend(fontsize=8)
     axes[2].plot(
         coverage,
         [row["regression_mae"] for row in risk_rows],
         marker="o",
         color="#059669",
+        label="回归MAE",
     )
     axes[2].set(xlabel="覆盖率（%）", ylabel="MAE", title="回归风险—覆盖曲线")
+    axes[2].legend(fontsize=8)
     for axis in axes:
         axis.grid(alpha=0.25)
     fig.suptitle("最终集成的不确定性校准与选择性风险", fontsize=14)

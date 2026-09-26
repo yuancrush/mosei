@@ -15,6 +15,7 @@ from datetime import datetime
 from pathlib import Path
 
 import matplotlib.pyplot as plt
+from plot_style import apply_chinese_style
 import numpy as np
 import torch
 from scipy.stats import pearsonr, spearmanr
@@ -113,8 +114,7 @@ def expected_calibration_error(y_true: np.ndarray, probs: np.ndarray, bins: int 
 
 
 def save_confusion(y_true: np.ndarray, y_pred: np.ndarray, path: Path) -> None:
-    plt.rcParams["font.sans-serif"] = ["Microsoft YaHei", "SimHei", "DejaVu Sans"]
-    plt.rcParams["axes.unicode_minus"] = False
+    apply_chinese_style()
     matrix = confusion_matrix(y_true, y_pred, labels=[0, 1, 2])
     figure, axis = plt.subplots(figsize=(5.8, 5.0))
     image = axis.imshow(matrix, cmap="Blues")

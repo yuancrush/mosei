@@ -13,6 +13,10 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
+from plot_style import apply_chinese_style
+
+
+apply_chinese_style()
 
 
 PROJECT_ROOT = Path(__file__).resolve().parent
@@ -107,13 +111,13 @@ def save_plot(rows: List[dict], path: Path) -> None:
     audio = np.array([row["audio_missing_ratio"] for row in rows])
     vision = np.array([row["vision_missing_ratio"] for row in rows])
     fig, ax = plt.subplots(figsize=(10, 4.5))
-    ax.plot(x, audio, "o-", label="Audio")
-    ax.plot(x, vision, "s--", label="Vision")
+    ax.plot(x, audio, "o-", label="语音")
+    ax.plot(x, vision, "s--", label="视觉")
     ax.axhline(audio.mean(), color="tab:blue", alpha=0.35, linestyle=":")
-    ax.set_xlabel("Sample index")
-    ax.set_ylabel("Missing ratio within effective sequence")
+    ax.set_xlabel("样本编号")
+    ax.set_ylabel("有效序列内的缺失比例")
     ax.set_ylim(0, 1)
-    ax.set_title("Attachment 3 local modality missingness")
+    ax.set_title("附件3局部模态缺失比例")
     ax.grid(alpha=0.2)
     ax.legend()
     fig.tight_layout()

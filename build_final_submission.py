@@ -114,6 +114,7 @@ def collect_files() -> list[tuple[Path, str, str]]:
     add_tree(ROOT / "outputs" / "exp029_repeated_explanations_interactions", "03_问题3预测与解释/解释验证", "问题3解释验证")
 
     source_files = [
+        "plot_style.py",
         "audit_attachment1.py",
         "extract_question1_features.py",
         "upgrade_question1_visual.py",
@@ -159,6 +160,7 @@ def collect_files() -> list[tuple[Path, str, str]]:
         "EXP-030_官方测试唯一评估.md",
         "EXP-031_门控响应与多种子训练轨迹.md",
         "EXP-032_最终附件白名单与清理.md",
+        "EXP-033_全项目图表中文化与样式统一.md",
     ]
     for name in experiment_names:
         add(ROOT / "experiments" / name, f"05_实验说明/{name}", "最终实验说明")
@@ -168,6 +170,7 @@ def collect_files() -> list[tuple[Path, str, str]]:
         "Q2_2026-09-26_门控响应与训练轨迹交接.md",
         "Q3_2026-09-25_重复随机解释与模态交互交接.md",
         "FINAL_2026-09-26_唯一提交附件交接.md",
+        "FINAL_2026-09-26_全项目图表中文化交接.md",
     ]
     for name in handoff_names:
         add(
@@ -175,6 +178,11 @@ def collect_files() -> list[tuple[Path, str, str]]:
             f"05_实验说明/最新写作交接/{name}",
             "最新写作交接",
         )
+    add(
+        ROOT / "reports" / "figure_audit" / "术语与样式规范.md",
+        "05_实验说明/图表术语与样式规范.md",
+        "图表规范",
+    )
 
     forbidden = ("smoke", "exp016", "候选", "pseudo")
     for _, archive, _ in files:

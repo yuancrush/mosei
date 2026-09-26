@@ -13,6 +13,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from scipy.stats import wilcoxon
+from plot_style import apply_chinese_style
 
 
 PROJECT_ROOT = Path(__file__).resolve().parent
@@ -24,12 +25,12 @@ RUNS = {
 
 
 def configure_chinese_font() -> None:
+    apply_chinese_style()
     for path in (Path(r"C:\Windows\Fonts\msyh.ttc"), Path(r"C:\Windows\Fonts\simhei.ttf")):
         if path.exists():
             font_manager.fontManager.addfont(str(path))
             plt.rcParams["font.family"] = font_manager.FontProperties(fname=path).get_name()
             break
-    plt.rcParams["axes.unicode_minus"] = False
 
 
 def bootstrap_mean_ci(values: np.ndarray, seed: int = 2026) -> tuple[float, float]:
@@ -116,7 +117,7 @@ def main() -> None:
         x - 0.18,
         [summaries[size]["classification_fidelity"]["top_deletion_probability_drop_mean"] for size in comparison.block_size],
         width=0.36,
-        label="Top证据删除",
+        label="最高贡献证据删除",
     )
     axes[0].bar(
         x + 0.18,
@@ -144,7 +145,7 @@ def main() -> None:
     )
     axes[1].set_ylim(0, 1)
     axes[1].set_xlabel("每个连续块的位置数")
-    axes[1].set_ylabel("三种子Top-1两两一致率")
+    axes[1].set_ylabel("三种子首要证据两两一致率")
     axes[1].set_title("解释稳定性")
     axes[1].legend()
     axes[1].grid(alpha=0.2)

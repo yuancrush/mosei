@@ -20,6 +20,8 @@ import matplotlib
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+from matplotlib.patches import Patch
+from plot_style import apply_chinese_style
 from matplotlib.gridspec import GridSpec
 import numpy as np
 import pandas as pd
@@ -28,8 +30,7 @@ import soundfile as sf
 from extract_question1_features import PROJECT_ROOT, extract_wav
 
 
-plt.rcParams["font.sans-serif"] = ["Microsoft YaHei", "SimHei", "Arial"]
-plt.rcParams["axes.unicode_minus"] = False
+apply_chinese_style()
 
 
 def find_attachment1() -> Path:
@@ -217,6 +218,14 @@ def create_typical_figure(
     )
     audio_axis.set_xlim(0, audio_duration)
     audio_axis.grid(axis="x", color="#CBD5E1", linewidth=0.5, alpha=0.65)
+    audio_axis.legend(
+        handles=[
+            Patch(facecolor="#93C5FD", alpha=0.25, label="全部转写词区间"),
+            Patch(facecolor="#2563EB", alpha=0.45, label="展示关键词区间"),
+        ],
+        loc="upper right",
+        ncol=2,
+    )
 
     feature_axis = fig.add_subplot(grid[2, :])
     energies = np.vstack(
@@ -338,6 +347,7 @@ def create_zip(
     output_path: Path, submission_dir: Path, feature_root: Path
 ) -> None:
     source_files = [
+        PROJECT_ROOT / "plot_style.py",
         PROJECT_ROOT / "audit_attachment1.py",
         PROJECT_ROOT / "extract_question1_features.py",
         PROJECT_ROOT / "upgrade_question1_visual.py",

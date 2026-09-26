@@ -11,6 +11,7 @@ import matplotlib
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+from plot_style import apply_chinese_style
 import numpy as np
 import torch
 from scipy.stats import wilcoxon
@@ -127,24 +128,24 @@ def write_csv(path: Path, rows: list[dict]) -> None:
 
 
 def create_figure(rows: list[dict], path: Path) -> None:
-    plt.rcParams["font.sans-serif"] = ["Microsoft YaHei", "SimHei", "Arial"]
-    plt.rcParams["axes.unicode_minus"] = False
+    apply_chinese_style()
     class_top = np.asarray([row["classification_top_deletion"] for row in rows])
     class_random = np.asarray([row["classification_random_deletion_mean"] for row in rows])
     reg_top = np.asarray([row["regression_top_deletion"] for row in rows])
     reg_random = np.asarray([row["regression_random_deletion_mean"] for row in rows])
     interaction = np.asarray([row["classification_audio_visual_interaction"] for row in rows])
     fig, axes = plt.subplots(1, 3, figsize=(13.5, 4.2))
-    axes[0].boxplot([class_top, class_random], tick_labels=["Top证据", "30次随机均值"], showfliers=False)
+    axes[0].boxplot([class_top, class_random], tick_labels=["最高贡献证据", "30次随机均值"], showfliers=False)
     axes[0].set_title("分类删除忠实性")
     axes[0].set_ylabel("目标类别概率下降")
-    axes[1].boxplot([reg_top, reg_random], tick_labels=["Top证据", "30次随机均值"], showfliers=False)
+    axes[1].boxplot([reg_top, reg_random], tick_labels=["最高贡献证据", "30次随机均值"], showfliers=False)
     axes[1].set_title("回归删除忠实性")
     axes[1].set_ylabel("预测值绝对变化")
-    axes[2].hist(interaction, bins=35, color="#2563EB", alpha=0.8)
-    axes[2].axvline(0, color="#64748B", ls="--", lw=1)
+    axes[2].hist(interaction, bins=35, color="#2563EB", alpha=0.8, label="样本分布")
+    axes[2].axvline(0, color="#64748B", ls="--", lw=1, label="零交互基准")
     axes[2].set_title("文本条件下音视频交互")
     axes[2].set_xlabel("二阶反事实交互值")
+    axes[2].legend()
     for axis in axes:
         axis.grid(axis="y", alpha=0.2)
     fig.suptitle("重复随机解释验证与模态交互", fontsize=14)

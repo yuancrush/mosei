@@ -14,6 +14,10 @@ import matplotlib.pyplot as plt
 import numpy as np
 import torch
 from sklearn.metrics import ConfusionMatrixDisplay
+from plot_style import apply_chinese_style
+
+
+apply_chinese_style()
 from torch import nn
 from torch.nn import functional as F
 from torch.optim import AdamW
@@ -410,10 +414,12 @@ def save_confusion_matrix(metrics: Dict[str, object], path: Path, title: str) ->
     matrix = np.asarray(metrics["confusion_matrix"])
     display = ConfusionMatrixDisplay(
         confusion_matrix=matrix,
-        display_labels=["Negative", "Neutral", "Positive"],
+        display_labels=["负向", "中性", "正向"],
     )
     display.plot(cmap="Blues", values_format="d", colorbar=False)
     display.ax_.set_title(title)
+    display.ax_.set_xlabel("预测类别")
+    display.ax_.set_ylabel("真实类别")
     path.parent.mkdir(parents=True, exist_ok=True)
     plt.tight_layout()
     plt.savefig(path, dpi=180)
@@ -423,15 +429,17 @@ def save_confusion_matrix(metrics: Dict[str, object], path: Path, title: str) ->
 def save_history(history: List[Dict[str, float]], path: Path, title: str) -> None:
     epochs = [row["epoch"] for row in history]
     fig, axes = plt.subplots(1, 2, figsize=(10, 4))
-    axes[0].plot(epochs, [row["train_loss"] for row in history], label="train")
-    axes[0].plot(epochs, [row["valid_loss"] for row in history], label="valid")
-    axes[0].set_title("Loss")
-    axes[0].set_xlabel("Epoch")
+    axes[0].plot(epochs, [row["train_loss"] for row in history], label="训练集")
+    axes[0].plot(epochs, [row["valid_loss"] for row in history], label="验证集")
+    axes[0].set_title("损失函数")
+    axes[0].set_xlabel("训练轮次")
+    axes[0].set_ylabel("损失值")
     axes[0].legend()
     axes[1].plot(epochs, [row["valid_macro_f1"] for row in history], label="Macro-F1")
     axes[1].plot(epochs, [row["valid_pearson"] for row in history], label="Pearson")
-    axes[1].set_title("Validation metrics")
-    axes[1].set_xlabel("Epoch")
+    axes[1].set_title("验证集指标")
+    axes[1].set_xlabel("训练轮次")
+    axes[1].set_ylabel("指标值")
     axes[1].legend()
     fig.suptitle(title)
     fig.tight_layout()

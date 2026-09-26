@@ -14,6 +14,7 @@ import matplotlib
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+from plot_style import apply_chinese_style
 import numpy as np
 import torch
 from matplotlib.lines import Line2D
@@ -203,8 +204,7 @@ def bin_gate_rows(rows: list[dict]) -> list[dict]:
 
 
 def plot_gate_response(rows: list[dict], path: Path) -> None:
-    plt.rcParams["font.sans-serif"] = ["Microsoft YaHei", "SimHei", "DejaVu Sans"]
-    plt.rcParams["axes.unicode_minus"] = False
+    apply_chinese_style()
     colors = {"audio": "#2563EB", "vision": "#E76F51"}
     figure, axes = plt.subplots(2, 2, figsize=(12.5, 8.0))
     specifications = [
@@ -213,7 +213,7 @@ def plot_gate_response(rows: list[dict], path: Path) -> None:
     ]
     metrics = [
         ("effective_gate_025_mean", "有效门控系数 $0.25g_m$"),
-        ("effective_residual_l2_mean", "最终分类logit残差幅度（L2）"),
+        ("effective_residual_l2_mean", "最终分类输出残差幅度（L2范数）"),
     ]
     for column, (variable, x_label) in enumerate(specifications):
         for row_index, (metric, y_label) in enumerate(metrics):
@@ -276,14 +276,13 @@ def export_training_histories() -> tuple[list[dict], list[dict]]:
 
 
 def plot_training_histories(rows: list[dict], summaries: list[dict], path: Path) -> None:
-    plt.rcParams["font.sans-serif"] = ["Microsoft YaHei", "SimHei", "DejaVu Sans"]
-    plt.rcParams["axes.unicode_minus"] = False
+    apply_chinese_style()
     colors = {2026: "#2563EB", 2027: "#E76F51", 2028: "#2A9D8F"}
     figure, axes = plt.subplots(2, 2, figsize=(13.0, 8.2), sharex="col")
     for column, task in enumerate(("classification", "regression")):
         metric = "valid_macro_f1" if task == "classification" else "valid_mae"
-        y_label = "验证集Macro-F1" if task == "classification" else "验证集MAE"
-        title = "三模态分类专家" if task == "classification" else "Text+Audio回归专家"
+        y_label = "验证集 Macro-F1" if task == "classification" else "验证集 MAE"
+        title = "三模态分类专家" if task == "classification" else "文本+语音回归专家"
         for seed in colors:
             selected_rows = [
                 row for row in rows if row["task"] == task and row["seed"] == seed
@@ -297,7 +296,7 @@ def plot_training_histories(rows: list[dict], summaries: list[dict], path: Path)
             selected_epoch = summary["selected_epoch"]
             selected_value = values[np.flatnonzero(epochs == selected_epoch)[0]]
             axes[0, column].plot(
-                epochs, values, marker="o", markersize=3.5, color=colors[seed], label=f"seed {seed}"
+                epochs, values, marker="o", markersize=3.5, color=colors[seed], label=f"随机种子{seed}"
             )
             axes[0, column].scatter(
                 [selected_epoch], [selected_value], marker="*", s=150, color=colors[seed], zorder=5
@@ -311,7 +310,7 @@ def plot_training_histories(rows: list[dict], summaries: list[dict], path: Path)
                 where="post",
                 color=colors[seed],
                 linewidth=2,
-                label=f"seed {seed}",
+                label=f"随机种子{seed}",
             )
         axes[0, column].set_title(title)
         axes[0, column].set_ylabel(y_label)
@@ -321,7 +320,7 @@ def plot_training_histories(rows: list[dict], summaries: list[dict], path: Path)
         axes[1, column].set_xlabel("训练轮次")
         axes[1, column].grid(alpha=0.25)
         seed_handles = [
-            Line2D([0], [0], color=colors[seed], marker="o", linewidth=2, label=f"seed {seed}")
+            Line2D([0], [0], color=colors[seed], marker="o", linewidth=2, label=f"随机种子{seed}")
             for seed in colors
         ]
         semantic_handles = [

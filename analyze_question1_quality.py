@@ -10,13 +10,13 @@ import matplotlib
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+from plot_style import apply_chinese_style
 import numpy as np
 import pandas as pd
 
 
 PROJECT_ROOT = Path(__file__).resolve().parent
-plt.rcParams["font.sans-serif"] = ["Microsoft YaHei", "SimHei", "Arial"]
-plt.rcParams["axes.unicode_minus"] = False
+apply_chinese_style()
 
 
 def validate_sample(path: Path) -> dict[str, bool]:
@@ -63,12 +63,14 @@ def validate_sample(path: Path) -> dict[str, bool]:
 def plot_overview(log: pd.DataFrame, output_path: Path) -> None:
     fig, axes = plt.subplots(2, 2, figsize=(11, 8))
     axes[0, 0].hist(log["mean_alignment_score"], bins=np.linspace(0, 1, 21), color="#2563EB")
-    axes[0, 0].axvline(0.6, color="#DC2626", linestyle="--")
+    axes[0, 0].axvline(0.6, color="#DC2626", linestyle="--", label="复核阈值0.6")
     axes[0, 0].set(title="样本平均强制对齐置信度", xlabel="置信度", ylabel="样本数")
+    axes[0, 0].legend()
 
     axes[0, 1].hist(log["face_frame_detection_ratio"], bins=np.linspace(0, 1, 21), color="#0F766E")
-    axes[0, 1].axvline(0.7, color="#DC2626", linestyle="--")
+    axes[0, 1].axvline(0.7, color="#DC2626", linestyle="--", label="复核阈值0.7")
     axes[0, 1].set(title="人脸帧检出覆盖率", xlabel="检出帧比例", ylabel="样本数")
+    axes[0, 1].legend()
 
     colors = log["status"].map({"pass": "#16A34A", "review": "#DC2626"})
     axes[1, 0].scatter(log["word_count"], log["mean_alignment_score"], c=colors, alpha=0.75)
@@ -96,7 +98,7 @@ def plot_alignment_examples(log: pd.DataFrame, sample_dir: Path, output_path: Pa
         log.loc[log["mean_alignment_score"].idxmax()],
         log.loc[log["mean_alignment_score"].idxmin()],
     ]
-    fig, axes = plt.subplots(2, 1, figsize=(12, 6))
+    fig, axes = plt.subplots(2, 1, figsize=(12, 6), constrained_layout=True)
     for axis, row in zip(axes, examples):
         data = np.load(sample_dir / Path(row["output_file"]).name)
         words = data["words"][:25]
@@ -110,7 +112,9 @@ def plot_alignment_examples(log: pd.DataFrame, sample_dir: Path, output_path: Pa
         display_id = str(row["sample_id"]).replace("$_$", " / ")
         axis.set_title(f'样本 {display_id} | 平均对齐置信度={row["mean_alignment_score"]:.3f}')
         axis.invert_yaxis()
-    fig.tight_layout()
+    color_mapping = plt.cm.ScalarMappable(norm=plt.Normalize(0, 1), cmap="RdYlGn")
+    color_mapping.set_array([])
+    fig.colorbar(color_mapping, ax=axes, fraction=0.018, pad=0.015, label="词级对齐置信度")
     fig.savefig(output_path, dpi=180)
     plt.close(fig)
 

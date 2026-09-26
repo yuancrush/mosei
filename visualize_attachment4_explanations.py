@@ -12,8 +12,10 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.font_manager as font_manager
 import matplotlib.pyplot as plt
+from matplotlib.patches import Patch
 import numpy as np
 import pandas as pd
+from plot_style import apply_chinese_style
 
 
 PROJECT_ROOT = Path(__file__).resolve().parent
@@ -22,12 +24,12 @@ REPORT_DIR = PROJECT_ROOT / "reports" / "question3_stage_c"
 
 
 def configure_chinese_font() -> None:
+    apply_chinese_style()
     for path in (Path(r"C:\Windows\Fonts\msyh.ttc"), Path(r"C:\Windows\Fonts\simhei.ttf")):
         if path.exists():
             font_manager.fontManager.addfont(str(path))
             plt.rcParams["font.family"] = font_manager.FontProperties(fname=path).get_name()
             break
-    plt.rcParams["axes.unicode_minus"] = False
 
 
 def read_image(path: Path) -> np.ndarray:
@@ -70,6 +72,15 @@ def main() -> None:
     axes[1].set_xticks(x, predictions["sample"])
     axes[1].set_ylabel("预测情感强度")
     axes[1].set_title("极性与强度输出（红/灰/绿分别为负向/中性/正向）")
+    axes[1].legend(
+        handles=[
+            Patch(color="#DC2626", label="负向"),
+            Patch(color="#64748B", label="中性"),
+            Patch(color="#16A34A", label="正向"),
+        ],
+        ncol=3,
+        title="预测极性",
+    )
     axes[1].grid(axis="y", alpha=0.2)
 
     axes[2].plot(

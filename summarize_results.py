@@ -5,6 +5,10 @@ from pathlib import Path
 
 import matplotlib.pyplot as plt
 import pandas as pd
+from plot_style import apply_chinese_style
+
+
+apply_chinese_style()
 
 
 def parse_args() -> argparse.Namespace:
@@ -27,17 +31,19 @@ def main() -> None:
     test = test.sort_values("model")
 
     colors = ["#4C78A8", "#F58518", "#54A24B", "#E45756"]
+    model_names = {"text": "文本", "audio": "语音", "vision": "视觉", "fusion": "三模态融合"}
+    display_names = [model_names[str(model)] for model in test["model"]]
     metrics = [
         ("accuracy", "Accuracy", False),
         ("macro_f1", "Macro-F1", False),
-        ("pearson", "Pearson correlation", False),
-        ("mae", "MAE (lower is better)", True),
+        ("pearson", "Pearson", False),
+        ("mae", "MAE（越低越好）", True),
     ]
 
     fig, axes = plt.subplots(2, 2, figsize=(11, 7), constrained_layout=True)
     for ax, (column, title, lower_is_better) in zip(axes.flat, metrics):
         values = test[column].to_numpy()
-        bars = ax.bar(test["model"].astype(str), values, color=colors)
+        bars = ax.bar(display_names, values, color=colors)
         ax.set_title(title)
         ax.set_ylim(0, max(1.0, float(values.max()) * 1.18))
         ax.grid(axis="y", alpha=0.25)
@@ -51,9 +57,9 @@ def main() -> None:
                 fontsize=9,
             )
         if lower_is_better:
-            ax.text(0.98, 0.92, "lower is better", transform=ax.transAxes, ha="right", fontsize=9)
+            ax.text(0.98, 0.92, "数值越低越好", transform=ax.transAxes, ha="right", fontsize=9)
 
-    fig.suptitle("Four minimal baselines on the official test split", fontsize=15)
+    fig.suptitle("四种最小基线在官方测试划分上的表现", fontsize=15)
     output_path = summary_path.parent / "baseline_comparison.png"
     fig.savefig(output_path, dpi=180)
     plt.close(fig)

@@ -23,6 +23,19 @@ from mosei.data import MoseiDataModule, find_aligned_pickle
 from mosei.metrics import compute_metrics
 from mosei.models import build_model
 from mosei.utils import move_batch
+from plot_style import apply_chinese_style
+
+
+apply_chinese_style()
+
+MODEL_DISPLAY_NAMES = {
+    "fusion": "三模态均值融合",
+    "text_bigru": "文本双向GRU",
+    "text_audio_bigru": "文本+语音双向GRU",
+    "fusion_uncertainty_bigru": "不确定性感知三模态融合",
+    "fusion_task_gated_bigru": "任务特异门控三模态融合",
+    "fusion_output_residual_bigru": "输出残差三模态融合",
+}
 
 
 DEFAULT_CHECKPOINTS = (
@@ -177,12 +190,13 @@ def save_plot(rows: List[dict], path: Path) -> None:
     for model_name in dict.fromkeys(row["model"] for row in selected):
         model_rows = sorted((row for row in selected if row["model"] == model_name), key=lambda row: row["requested_ratio"])
         x = [row["requested_ratio"] for row in model_rows]
-        axes[0].plot(x, [row["macro_f1"] for row in model_rows], "o-", label=model_name)
-        axes[1].plot(x, [row["mae"] for row in model_rows], "o-", label=model_name)
+        model_label = MODEL_DISPLAY_NAMES.get(model_name, model_name)
+        axes[0].plot(x, [row["macro_f1"] for row in model_rows], "o-", label=model_label)
+        axes[1].plot(x, [row["mae"] for row in model_rows], "o-", label=model_label)
     axes[0].set_ylabel("Macro-F1")
     axes[1].set_ylabel("MAE")
     for ax in axes:
-        ax.set_xlabel("Joint A/V missing ratio (middle)")
+        ax.set_xlabel("语音与视觉中部联合缺失比例")
         ax.grid(alpha=0.2)
         ax.legend()
     fig.tight_layout()

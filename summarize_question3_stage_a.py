@@ -12,12 +12,14 @@ import matplotlib.font_manager as font_manager
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+from plot_style import apply_chinese_style
 
 
 PROJECT_ROOT = Path(__file__).resolve().parent
 
 
 def configure_chinese_font() -> None:
+    apply_chinese_style()
     candidates = [
         Path(r"C:\Windows\Fonts\msyh.ttc"),
         Path(r"C:\Windows\Fonts\simhei.ttf"),
@@ -26,7 +28,6 @@ def configure_chinese_font() -> None:
     if font_path is not None:
         font_manager.fontManager.addfont(str(font_path))
         plt.rcParams["font.family"] = font_manager.FontProperties(fname=font_path).get_name()
-    plt.rcParams["axes.unicode_minus"] = False
 
 
 def main() -> None:

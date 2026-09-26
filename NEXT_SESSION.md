@@ -56,6 +56,7 @@
 - EXP-030已完成：官方test只运行一次，完成标记位于`outputs/exp030_final_test_once/RUN_COMPLETE.json`，后续不得删除标记或重跑。
 - EXP-031已完成：图6-3门控响应和图6-4三种子训练/调度/早停轨迹均已由真实valid中间量与完整日志生成；最新问题2写作交接日期为2026-09-26。
 - EXP-032已完成：唯一提交ZIP位于`submission/研究生数学建模E题_最终提交附件.zip`；提交前只核对同目录清单和SHA256，不再从历史outputs挑选文件。
+- EXP-033已完成：项目内60张科研PNG均由Python代码统一重绘；标题、坐标语义和图例对象中文化，Accuracy、Macro-F1、MAE、Pearson等标准指标保留英文。最新全局交接为`reports/writing_handoffs/FINAL_2026-09-26_全项目图表中文化交接.md`。
 - 完整阶段总结见 `reports/第1天实验阶段总结.md`。
 - 日常迭代使用 `--validation-only`，不要根据测试集结果选择结构或超参数。
 
